@@ -1,0 +1,71 @@
+using PinionCore.NetSync.Extensions;
+
+using PinionCore.Remote;
+
+using Unity.Properties;
+
+using UnityEngine;
+
+namespace PinionCore.NetSync
+{
+    public class Client : MonoBehaviour
+    {
+        PinionCore.Remote.Ghost.IAgent _Agent;
+        IProtocol _Protocol;
+        public PinionCore.Remote.INotifierQueryable Queryer => _QueryQueryer();
+
+        private Remote.Ghost.IAgent _QueryQueryer()
+        {
+            if (_Agent == null)
+            {
+                _Agent = PinionCore.Remote.Client.Provider.CreateAgent(_QueryProtocol());                
+            }
+
+            return _Agent;
+        }
+
+        public IProtocol Protocol => _QueryProtocol();
+
+        private IProtocol _QueryProtocol()
+        {
+            if (_Protocol == null)
+            {
+                _Protocol = ProtocolCreator.Create();
+            }
+            return _Protocol;
+        }
+
+        [CreateProperty] public string Hash => _QueryProtocol().VersionCode.ToHexString();
+        [CreateProperty] public float Ping => _QueryQueryer().Ping;
+        
+
+        public Client()
+        {
+            PinionCore.Utility.Log.Instance.RecordEvent += (msg) => UnityEngine.Debug.Log(msg);
+
+        }
+
+        public void Start()
+        {
+            
+        }
+
+        public void Enable(Network.IStreamable streamable)
+        {
+            _QueryQueryer().Enable(streamable);
+        }
+
+        public void Disable()
+        {
+            _QueryQueryer().Disable();
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            _QueryQueryer().Update();
+        }
+
+
+    }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "com.pinioncore.netsync",
+  "version": "0.0.1",
+  "displayName": "PinionCore NetSync",
+  "description": "A description of what your package does.",
+  "unity": "6000.0",
+  "type": "library"
+
+}
