@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "displayName": "PinionCore NetSync",
   "description": "This is an network connection synchronization kid.",
-  "unity": "2023.2",
+  "unity": "2022.2",
   "type": "library"
 }
