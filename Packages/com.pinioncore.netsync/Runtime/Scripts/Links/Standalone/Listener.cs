@@ -7,11 +7,14 @@ namespace PinionCore.NetSync.Standalone
 {
     [RequireComponent(typeof(Server))]
 
-    public class Listener : MonoBehaviour , IListenable
+    public class Listener : MonoBehaviour , IListenable , IListenerEditor
     {
         private readonly NotifiableCollection<IStreamable> _Notice;
         public readonly System.Collections.Generic.ICollection<IStreamable> Streams;
-        bool _Connect;
+        bool _Listening;
+
+        bool IListenerEditor.IsActive => _Listening;
+
         public Listener()
         {
             _Notice = new PinionCore.Remote.NotifiableCollection<IStreamable>();
@@ -44,23 +47,49 @@ namespace PinionCore.NetSync.Standalone
             }
         }
 
+        event Action<int> IListenerEditor.DataReceivedEvent
+        {
+            add
+            {
+                
+            }
+
+            remove
+            {
+                
+            }
+        }
+
+        event Action<int> IListenerEditor.DataSendEvent
+        {
+            add
+            {
+                
+            }
+
+            remove
+            {
+                
+            }
+        }
+
         public void Bind()
         {
             var server = GetComponent<Server>();
             server.Listener.Add(this);
-            _Connect = true;
+            _Listening = true;
         }
 
         public void Close()
         {
-            _Connect = false;
+            _Listening = false;
             var server = GetComponent<Server>();
             server.Listener.Remove(this);
         }
 
         public bool IsConnect()
         {
-            return _Connect;
+            return _Listening;
         }
     }
 

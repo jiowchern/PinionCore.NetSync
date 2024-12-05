@@ -1,40 +1,69 @@
 ﻿using PinionCore.Remote.Server.Tcp;
+using System;
 using Unity.Properties;
 using UnityEngine;
 
 namespace PinionCore.NetSync.Tcp
 {
+    
     [RequireComponent(typeof(Server))]
-    public class TcpListener : MonoBehaviour
+    public class TcpListener : MonoBehaviour , IListenerEditor
     {
         private Listener _Listener;
-        private readonly System.Collections.Concurrent.ConcurrentBag<int> _Receives;
+        
         [CreateProperty] public long BytesReceived { get; private set; }
 
-        private readonly System.Collections.Concurrent.ConcurrentBag<int> _Sends;
+        
         [CreateProperty] public long BytesSent { get; private set; }
 
-        public enum ListenerStatus
-        {
-            Offline,
-            Online,
-        }
-        [CreateProperty] public ListenerStatus CurrentStatus { get; private set; }
+      
+        [CreateProperty] public bool CurrentStatus { get; private set; }
+
+        bool _IsActive;
+        bool IListenerEditor.IsActive => _IsActive;
+
         public TcpListener()
-        {
-            _Receives = new System.Collections.Concurrent.ConcurrentBag<int>();
-            _Sends = new System.Collections.Concurrent.ConcurrentBag<int>();
+        {            
             _Listener = new Listener();
         }
+
+        event Action<int> _DataReceivedEvent;
+        event Action<int> IListenerEditor.DataReceivedEvent
+        {
+            add
+            {
+                _DataReceivedEvent += value;
+            }
+
+            remove
+            {
+                _DataReceivedEvent -= value;
+            }
+        }
+
+        event Action<int> _DataSendEvent;
+        event Action<int> IListenerEditor.DataSendEvent
+        {
+            add
+            {
+                _DataSendEvent +=value;
+            }
+
+            remove
+            {
+                _DataSendEvent -= value;
+            }
+        }
+
         public void Bind(int port)
         {
             UnityEngine.Debug.Log($"Bind {port}");
-            if (CurrentStatus == ListenerStatus.Online)
+            if (_IsActive)
             {
                 return;
             }
-            
-            CurrentStatus = ListenerStatus.Online;
+
+            _IsActive = true;
             BytesReceived = 0;
             BytesSent = 0;            
             _Listener.DataReceivedEvent += _Receive;
@@ -46,7 +75,7 @@ namespace PinionCore.NetSync.Tcp
 
         public void Close()
         {
-            if (CurrentStatus == ListenerStatus.Offline)
+            if (!_IsActive)
             {
                 return;
             }
@@ -55,29 +84,18 @@ namespace PinionCore.NetSync.Tcp
             server.Listener.Remove(_Listener);
             _Listener.DataReceivedEvent -= _Receive;
             _Listener.DataSentEvent -= _Send;
-            CurrentStatus = ListenerStatus.Offline;
+            _IsActive = false;
             
         }
         void _Receive(int receive)
         {
-            _Receives.Add(receive);
+            _DataReceivedEvent?.Invoke(receive);
         }
 
         void _Send(int send)
         {
-            _Sends.Add(send);
+            _DataSendEvent?.Invoke(send);
         }
-        void Update()
-        {
-            while (_Receives.TryTake(out var receive))
-            {
-                BytesReceived += receive;
-            }
-
-            while (_Sends.TryTake(out var send))
-            {
-                BytesSent += send;
-            }
-        }
+        
     }
 }

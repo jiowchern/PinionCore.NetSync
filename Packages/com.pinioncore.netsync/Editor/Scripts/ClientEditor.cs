@@ -8,8 +8,8 @@ using Unity.Properties;
 using System.Net.NetworkInformation;
 namespace PinionCore.NetSync.Editor
 {
-   
-    [CustomEditor(typeof(Client))]
+
+    [CustomEditor(typeof(Client)) ]
     public class ClientEditor : UnityEditor.Editor
     {        
         

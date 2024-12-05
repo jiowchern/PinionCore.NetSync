@@ -55,8 +55,8 @@ namespace PinionCore.NetSync.Web
         private static readonly Dictionary<int, WebSocketStream> _instances = new Dictionary<int, WebSocketStream>();
 
         private readonly int _instanceId;
-        private readonly PinionCore.Network.Stream _stream;
-        private readonly IStreamable _streamable;
+        private readonly PinionCore.Network.IStreamable _ReceiveStream;
+        
 
         // 事件，供用户订阅
         public event Action OnOpen;
@@ -81,8 +81,8 @@ namespace PinionCore.NetSync.Web
                 _instances[_instanceId] = this;
             }
 
-            _stream = new PinionCore.Network.Stream();
-            _streamable = _stream;
+            _ReceiveStream = new PinionCore.Network.BufferRelay();
+            
         }
 
         public void Connect()
@@ -103,7 +103,7 @@ namespace PinionCore.NetSync.Web
         public IWaitableValue<int> Receive(byte[] buffer, int offset, int count)
         {
             UnityEngine.Debug.Log($"Receive: {count}");
-            return _streamable.Receive(buffer, offset, count);
+            return _ReceiveStream.Receive(buffer, offset, count);
         }
 
         public IWaitableValue<int> Send(byte[] buffer, int offset, int count)
@@ -111,18 +111,16 @@ namespace PinionCore.NetSync.Web
             return _Send(buffer, offset, count).ToWaitableValue();
         }
 
-        async Task<int> _Send(byte[] buffer, int offset, int count)
-        {
-            UnityEngine.Debug.Log($"Send: {count}");
-            var sended = await _streamable.Send(buffer, offset, count);
-            var newBuf = new byte[sended];
-            sended = await _stream.Pop(newBuf, 0, newBuf.Length);
+        int _Send(byte[] buffer, int offset, int count)
+        {            
+            var newBuf = new byte[count];
+            Array.Copy(buffer, offset, newBuf, 0, count);
+            var sended = WebSocketSend(data: newBuf, length: count, instanceId: _instanceId);
             if (sended == 0)
             {
                 UnityEngine.Debug.Log($"Send count == 0");
                 return 0;
             }
-            WebSocketSend(data: newBuf, length: sended, instanceId: _instanceId);
             return sended;
         }
 
@@ -135,7 +133,6 @@ namespace PinionCore.NetSync.Web
         {
             if (_instances.TryGetValue(instanceId, out var instance))
             {
-                UnityEngine.Debug.Log("WebSocketOnOpen");
                 instance.OnOpen?.Invoke();
             }
         }
@@ -146,10 +143,9 @@ namespace PinionCore.NetSync.Web
         {
             if (_instances.TryGetValue(instanceId, out var instance))
             {
-                UnityEngine.Debug.Log($"WebSocketOnMessage: {length}");
                 byte[] data = new byte[length];
                 Marshal.Copy(bufferPtr, data, 0, length);
-                var pushCount = await instance._stream.Push(data, 0, length);
+                var pushCount = await instance._ReceiveStream.Send(data, 0, length);
             }
         }
 

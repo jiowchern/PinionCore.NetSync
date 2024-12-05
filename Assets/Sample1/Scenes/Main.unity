@@ -426,7 +426,7 @@ GameObject:
   - component: {fileID: 117486425}
   - component: {fileID: 117486424}
   m_Layer: 0
-  m_Name: Main Camera (1)
+  m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2486,7 +2486,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30d4ca1725feaf2428661c0bc338cfa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Users: 0
 --- !u!114 &828444303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5282,7 +5281,7 @@ GameObject:
   - component: {fileID: 1545560916}
   - component: {fileID: 1545560915}
   m_Layer: 0
-  m_Name: StandaloneSlient
+  m_Name: StandaloneClient
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7202,7 +7201,7 @@ GameObject:
   - component: {fileID: 2024871671}
   - component: {fileID: 2024871670}
   m_Layer: 0
-  m_Name: Directional Light (1)
+  m_Name: Directional Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -16,7 +16,7 @@ namespace PinionCore.NetSync.Editor
         {
             _Target = (Server)target;
         }
-
+        
         public override VisualElement CreateInspectorGUI()
         {
             var root = new VisualElement();

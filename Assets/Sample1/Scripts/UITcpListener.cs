@@ -21,7 +21,7 @@ namespace PinionCore.NetSync.Sample1
 
         private void _Click()
         {
-            if (Listener.CurrentStatus == TcpListener.ListenerStatus.Offline)
+            if (!(Listener as IListenerEditor).IsActive)
             {
                 if (!int.TryParse(Port.text, out var port))
                     return;
