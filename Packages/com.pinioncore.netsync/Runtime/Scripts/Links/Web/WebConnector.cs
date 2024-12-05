@@ -73,7 +73,7 @@ namespace PinionCore.NetSync.Web
             _StatusMachine.Push(status);
         }
 
-        public void Close()
+        public void Disconnect()
         {
             if (!IsConnected)
                 return;

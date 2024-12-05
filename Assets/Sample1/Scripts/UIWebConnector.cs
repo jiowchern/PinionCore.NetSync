@@ -37,7 +37,7 @@ namespace PinionCore.NetSync.Sample1
             else
             {
                 Address.enabled = true;
-                Connector.Close();
+                Connector.Disconnect();
             }
         }
     }

@@ -6,16 +6,19 @@ using Unity.Properties;
 
 using UnityEngine;
 
+
 namespace PinionCore.NetSync
 {
     public class Client : MonoBehaviour
     {
+        
         PinionCore.Remote.Ghost.IAgent _Agent;
         IProtocol _Protocol;
         public PinionCore.Remote.INotifierQueryable Queryer => _QueryQueryer();
 
         private Remote.Ghost.IAgent _QueryQueryer()
         {
+            
             if (_Agent == null)
             {
                 _Agent = PinionCore.Remote.Client.Provider.CreateAgent(_QueryProtocol());                
