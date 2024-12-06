@@ -25,12 +25,12 @@ namespace PinionCore.NetSync.Web
 
         private void _Join(WebPeer peer)
         {
-            peer.Peer.BreakEvent += () =>
+            peer.TcpPeer.BreakEvent += () =>
             {
                 lock (_NotifiableCollection)
                 {
-                    peer.Peer.ReceiveEvent -= _Receive;
-                    peer.Peer.SendEvent -= _Send;
+                    peer.TcpPeer.ReceiveEvent -= _Receive;
+                    peer.TcpPeer.SendEvent -= _Send;
                     _NotifiableCollection.Items.Remove(peer);
                 }
 
@@ -38,8 +38,8 @@ namespace PinionCore.NetSync.Web
 
             lock (_NotifiableCollection)
             {
-                peer.Peer.SendEvent += _Send;
-                peer.Peer.ReceiveEvent += _Receive;
+                peer.TcpPeer.SendEvent += _Send;
+                peer.TcpPeer.ReceiveEvent += _Receive;
                 _NotifiableCollection.Items.Add(peer);
             }
         }

@@ -11,20 +11,16 @@ namespace PinionCore.NetSync.Web
 {
     public class WebPeer : IStreamable
     {
-        private readonly IStreamable Tcp_;
-        public readonly Network.Tcp.Peer Peer;
-        readonly Stream ReverseStream_;
-        int _ReceiveSize;
-        
-        readonly IStreamable Stream_;
-
+        private readonly IStreamable _TcpStream;
+        public readonly Network.Tcp.Peer TcpPeer;
+        readonly BufferRelay _WebPeer;
+      
         public WebPeer(Network.Tcp.Peer peer)
         {
-            _ReceiveSize = 0;
-            ReverseStream_ = new Stream();
-            Stream_ = ReverseStream_;
-            Peer = peer;
-            Tcp_ = peer;
+       
+            _WebPeer = new BufferRelay();            
+            TcpPeer = peer;
+            _TcpStream = peer;
         }
 
         IWaitableValue<int> IStreamable.Receive(byte[] buffer, int offset, int count)
@@ -39,12 +35,14 @@ namespace PinionCore.NetSync.Web
 
         public async Task<int> Receive(byte[] buffer, int offset, int count)
         {
-            if(_ReceiveSize > 0)
+
+            if (_WebPeer.HasPendingSegments())
             {
-                var receiveSize = await Stream_.Receive(buffer, offset, count);
-                _ReceiveSize -= receiveSize;
-                UnityEngine.Debug.Log($"receiveSize={receiveSize} _ReceiveSize:{_ReceiveSize}");
-                return receiveSize;
+                var popSize = await _WebPeer.Pop(buffer, offset, count);
+                if (popSize > 0)
+                {
+                    return popSize;
+                }
             }
 
             while (true)
@@ -107,12 +105,10 @@ namespace PinionCore.NetSync.Web
                     payloadData[i] ^= maskingKey[i % 4];
                 }
 
-                var sendSize = await ReverseStream_.Push(payloadData, 0, payloadData.Length);
-                _ReceiveSize += sendSize;
-                var receiveSize = await Stream_.Receive(buffer, offset, count);
-                _ReceiveSize -= receiveSize;
-                UnityEngine.Debug.Log($"sendSize={sendSize} receiveSize={receiveSize} _ReceiveSize:{_ReceiveSize}");
-                return receiveSize;
+                var pushSize = await _WebPeer.Push(payloadData, 0, payloadData.Length);
+                var popSize = await _WebPeer.Pop(buffer, offset, count);
+
+                return popSize;
             }
 
             return 0;
@@ -154,7 +150,7 @@ namespace PinionCore.NetSync.Web
             int totalSent = 0;
             while (totalSent < frameBytes.Length)
             {
-                int sent = await Tcp_.Send(frameBytes, totalSent, frameBytes.Length - totalSent);
+                int sent = await _TcpStream.Send(frameBytes, totalSent, frameBytes.Length - totalSent);
                 if (sent == 0)
                 {
                     throw new InvalidOperationException("Connection closed while sending data.");
@@ -172,7 +168,7 @@ namespace PinionCore.NetSync.Web
             int totalRead = 0;
             while (totalRead < count)
             {
-                int read = await Tcp_.Receive(buffer, totalRead, count - totalRead);
+                int read = await _TcpStream.Receive(buffer, totalRead, count - totalRead);
                 if (read == 0)
                 {
                     throw new InvalidOperationException("Connection closed while reading data.");
@@ -196,52 +192,14 @@ namespace PinionCore.NetSync.Web
             if (payloadLength > 0)
             {
                 byte[] payloadData = new byte[payloadLength];
-                await Tcp_.Receive(payloadData, 0, payloadLength);
+                await _TcpStream.Receive(payloadData, 0, payloadLength);
                 pongFrame.AddRange(payloadData);
             }
 
             UnityEngine.Debug.Log("Sending Pong frame");
             // Send the Pong frame
-            await Tcp_.Send(pongFrame.ToArray(), 0, pongFrame.Count);
+            await _TcpStream.Send(pongFrame.ToArray(), 0, pongFrame.Count);
         }
-        // Helper method to discard frames
-        private async Task DiscardRemainingFrames(bool fin)
-        {
-            while (!fin)
-            {
-                // Read and discard the header
-                byte[] header = await ReadExactly(2);
-                byte b0 = header[0];
-                byte b1 = header[1];
-
-                fin = (b0 & 0b10000000) != 0;
-                bool isMasked = (b1 & 0b10000000) != 0;
-                ulong payloadLength = (ulong)(b1 & 0b01111111);
-
-                if (payloadLength == 126)
-                {
-                    byte[] extendedLength = await ReadExactly(2);
-                    payloadLength = BinaryPrimitives.ReadUInt16BigEndian(extendedLength);
-                }
-                else if (payloadLength == 127)
-                {
-                    byte[] extendedLength = await ReadExactly(8);
-                    payloadLength = BinaryPrimitives.ReadUInt64BigEndian(extendedLength);
-                }
-
-                if (isMasked)
-                {
-                    await ReadExactly(4); // Discard masking key
-                }
-
-                // Discard payload
-                while (payloadLength > 0)
-                {
-                    int chunkSize = (int)Math.Min(payloadLength, 1024);
-                    await ReadExactly(chunkSize);
-                    payloadLength -= (ulong)chunkSize;
-                }
-            }
-        }
+       
     }
 }

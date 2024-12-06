@@ -1,23 +1,25 @@
 ﻿using PinionCore.Network;
+using PinionCore.Remote;
 using System;
 using UnityEngine;
 namespace PinionCore.NetSync.Standalone
 {
     [RequireComponent(typeof(Client))]
-    public class Connector : MonoBehaviour
+    public class Connector : MonoBehaviour 
     {
         public Listener Listener;
         private readonly Stream _Stream;
-        private readonly ReverseStream _ReverseStream;
+        readonly ReverseStream _ReverseStream;
+
         bool _Connecting;
         public Connector()
         {
             _Stream = new PinionCore.Network.Stream();
-            _ReverseStream = new PinionCore.Network.ReverseStream(_Stream);
+            _ReverseStream = new ReverseStream(_Stream);
         }
         public void Connect()
         {
-            this.Listener.Streams.Add(_ReverseStream);
+            this.Listener.Add(_ReverseStream);
             var agent = GetComponent<Client>();
             agent.Enable(_Stream);
             _Connecting = true;
@@ -27,7 +29,7 @@ namespace PinionCore.NetSync.Standalone
         {
             var agent = GetComponent<Client>();
             agent.Disable();
-            this.Listener.Streams.Remove(_ReverseStream);
+            this.Listener.Remove(_ReverseStream);
             _Connecting = false;
         }
 
@@ -35,6 +37,8 @@ namespace PinionCore.NetSync.Standalone
         {
             return _Connecting;
         }
+
+       
     }
 
 }

@@ -108,6 +108,8 @@ namespace PinionCore.NetSync.Web
 
         public IWaitableValue<int> Send(byte[] buffer, int offset, int count)
         {
+            UnityEngine.Debug.Log($"Send: {count}");
+
             return _Send(buffer, offset, count).ToWaitableValue();
         }
 
@@ -115,13 +117,13 @@ namespace PinionCore.NetSync.Web
         {            
             var newBuf = new byte[count];
             Array.Copy(buffer, offset, newBuf, 0, count);
-            var sended = WebSocketSend(data: newBuf, length: count, instanceId: _instanceId);
-            if (sended == 0)
+            if(WebSocketSend(data: newBuf, length: count, instanceId: _instanceId) != 0)
             {
-                UnityEngine.Debug.Log($"Send count == 0");
-                return 0;
+                UnityEngine.Debug.Log($"Send fail: {count}");
+
             }
-            return sended;
+
+            return count;
         }
 
         

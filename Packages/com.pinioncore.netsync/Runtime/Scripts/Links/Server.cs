@@ -25,9 +25,20 @@ namespace PinionCore.NetSync
         private readonly System.Collections.Concurrent.ConcurrentQueue<BinderCommand> _BinderOperator;
         public UnityEngine.Events.UnityEvent<BinderCommand> BinderEvent;                
         private readonly SyncService _Service;
-        
+
+        public static bool EnableLog = false;
+        [UnityEngine.RuntimeInitializeOnLoadMethod()]
+        public static void InitialLog()
+        {
+            if (Client.EnableLog)
+            {
+                return;
+            }
+            EnableLog = true;
+            PinionCore.Utility.Log.Instance.RecordEvent += (msg) => UnityEngine.Debug.Log($"PinionCoreLog:{msg}");
+        }
         public Server() {
-            PinionCore.Utility.Log.Instance.RecordEvent += (msg) => Debug.Log(msg);
+            
             _BinderOperator = new System.Collections.Concurrent.ConcurrentQueue<BinderCommand>();
             Listener = new Linstener();
             Protocol = ProtocolCreator.Create();

@@ -40,11 +40,23 @@ namespace PinionCore.NetSync
 
         [CreateProperty] public string Hash => _QueryProtocol().VersionCode.ToHexString();
         [CreateProperty] public float Ping => _QueryQueryer().Ping;
+
+        public static bool EnableLog = false;
         
+        [UnityEngine.RuntimeInitializeOnLoadMethod()]
+        public static void InitialLog()
+        {
+            if(Server.EnableLog)
+            {
+                return;
+            }
+            EnableLog = true;
+            PinionCore.Utility.Log.Instance.RecordEvent += (msg) => UnityEngine.Debug.Log($"PinionCoreLog:{msg}");
+        }
 
         public Client()
         {
-            PinionCore.Utility.Log.Instance.RecordEvent += (msg) => UnityEngine.Debug.Log(msg);
+            
 
         }
 

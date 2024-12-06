@@ -61,10 +61,6 @@ namespace PinionCore.NetSync.Syncs.Souls.Trackers
         {
             var zip = tracker.Zip(Scale);
 
-            PinionCore.Remote.ISerializable trackerSerializer = new PinionCore.Remote.Serializer(ProtocolCreator.Create().SerializeTypes);
-            var buf = trackerSerializer.Serialize(typeof(ZipTracker), zip);
-            UnityEngine.Debug.Log("TrackerSender.Run: " + buf.Count);
-
             _Update = () =>
             {
                 var ticks = System.DateTime.Now.Ticks;
