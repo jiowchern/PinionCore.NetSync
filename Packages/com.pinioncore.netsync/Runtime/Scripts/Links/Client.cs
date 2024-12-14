@@ -39,7 +39,9 @@ namespace PinionCore.NetSync
         }
 
         [CreateProperty] public string Hash => _QueryProtocol().VersionCode.ToHexString();
-        [CreateProperty] public float Ping => _QueryQueryer().Ping;
+        float _Ping;
+        //[CreateProperty] public float Ping =>  ;
+        [CreateProperty] public float Ping => _Ping;
 
         public static bool EnableLog = false;
         
@@ -76,9 +78,11 @@ namespace PinionCore.NetSync
         }
 
         // Update is called once per frame
-        void Update()
+        public void Update()
         {
-            _QueryQueryer().Update();
+            _Ping = _QueryQueryer().Ping;
+            _QueryQueryer().HandleMessage();
+            _QueryQueryer().HandlePackets();
         }
 
 

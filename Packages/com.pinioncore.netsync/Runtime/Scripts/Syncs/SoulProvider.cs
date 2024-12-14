@@ -25,7 +25,6 @@ namespace PinionCore.NetSync.Syncs.Souls
         }
         private void _GetBinder(Server.BinderCommand cmd)
         {
-            UnityEngine.Debug.Log( cmd.Status + " " + cmd.Binder.GetHashCode());
             if (cmd.Status == Server.BinderCommand.OperatorStatus.Add)
             {
                 

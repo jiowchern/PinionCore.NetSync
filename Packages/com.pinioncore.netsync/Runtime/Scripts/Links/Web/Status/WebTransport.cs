@@ -24,11 +24,11 @@ namespace PinionCore.NetSync.Web.Status
         void IStatus.Enter()
         {            
             
-            PinionCore.Utility.Log.Instance.WriteInfoImmediate("WebTransport Enter");
+            
             stream.OnError += _Error;
-            UnityEngine.Debug.Log("WebTransport Enter");    
+            
             agent.Enable(stream);
-            UnityEngine.Debug.Log("WebTransport Enter Done");
+            
         }
 
         private void _Error(string obj)

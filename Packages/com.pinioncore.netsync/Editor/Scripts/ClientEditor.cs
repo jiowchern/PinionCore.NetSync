@@ -20,15 +20,18 @@ namespace PinionCore.NetSync.Editor
         }
         public override VisualElement CreateInspectorGUI()
         {
-            var element = new VisualElement();
+            return base.CreateInspectorGUI();
+            /*var element = new VisualElement();
             var root = EditorGUIUtility.Load("Packages/com.pinioncore.netsync/Editor/Resources/Layouts/Client.uxml") as VisualTreeAsset ;
+            if(root == null)
+                return base.CreateInspectorGUI();
             root.CloneTree(element);
             var version = element.Q<Label>("VersionHesh");
             version.SetTextBinding(_Target, nameof(_Target.Hash), BindingMode.ToTarget);
 
             var ping = element.Q<Label>("Ping");
             ping.SetTextBinding(_Target, nameof(_Target.Ping), BindingMode.ToTarget);
-            return element;
+            return element;*/
         }
 
 

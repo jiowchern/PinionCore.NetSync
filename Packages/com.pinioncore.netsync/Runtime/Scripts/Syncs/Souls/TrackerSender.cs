@@ -25,16 +25,13 @@ namespace PinionCore.NetSync.Syncs.Souls.Trackers
         event Action<ZipTracker> ITracker.OnTrackerEvent
         {
             add
-            {
-                UnityEngine.Debug.Log("TrackerSender.OnTrackerEvent+=");
+            {                
                 _OnTrackerEvent += value;
             }
 
             remove
-            {
-                UnityEngine.Debug.Log("TrackerSender.OnTrackerEvent-=");
+            {                
                 _OnTrackerEvent -= value;
-
             }
         }
         public TrackerSender()

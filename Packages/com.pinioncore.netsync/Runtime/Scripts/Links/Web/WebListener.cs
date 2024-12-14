@@ -13,63 +13,97 @@ namespace PinionCore.NetSync.Web
     [RequireComponent(typeof(Server))]
     public class WebListener : MonoBehaviour , IListenerEditor
     {
-        private readonly Listener _Listener;
+        
 
         public bool IsListening { get; private set; }
 
         bool IListenerEditor.IsActive => IsListening;
 
+        System.Action _Disconnect;  
+
         public WebListener()
         {
-            _Listener = new Listener();
+            _Disconnect = _Empty;
         }
 
+        private void _Empty()
+        {
+            
+        }
+
+        event Action<int> _DataReceivedEvent;
         event Action<int> IListenerEditor.DataReceivedEvent
         {
             add
             {
-                _Listener.DataReceivedEvent += value;
+                _DataReceivedEvent += value;
             }
 
             remove
             {
-                _Listener.DataReceivedEvent -= value;
+                _DataReceivedEvent -= value;
             }
         }
 
+        event Action<int> _DataSendEvent;
         event Action<int> IListenerEditor.DataSendEvent
         {
             add
             {
-                _Listener.DataSentEvent += value;
+                _DataSendEvent += value;
             }
 
             remove
             {
-                _Listener.DataSentEvent -= value;
+                _DataSendEvent -= value;
             }
         }
 
         public void Bind(int port)
         {
+            if (IsListening)
+            {
+                return;
+            }
             
-            IListenable listenable = _Listener;
-            
+            var listener = new Listener();
             var server = GetComponent<Server>();
-            server.Listener.Add(_Listener);
-            _Listener.Tcp.Bind(port);
+            server.Listener.Add(listener);
+            listener.Tcp.Bind(port,5);
+            
+            listener.DataReceivedEvent += _Receive;
+            listener.DataSentEvent += _Send;
 
             IsListening = true;
+            _Disconnect = () =>
+            {
+                listener.DataReceivedEvent -= _Receive;
+                listener.DataSentEvent -= _Send;
+                server.Listener.Remove(listener);
+                listener.Tcp.Close();
+                IsListening = false;
+            };
         }
 
         
 
         public void Close()
         {
-            IsListening = false;
-            _Listener.Tcp.Close();
-            var server = GetComponent<Server>();
-            server.Listener.Remove(_Listener);
+            if (!IsListening)
+                return;
+
+            _Disconnect();
+            _Disconnect = _Empty;
+        }
+
+        private void _Send(int bytes)
+        {
+            _DataSendEvent?.Invoke(bytes);
+        }
+
+        private void _Receive(int bytes)
+        {
+            _DataReceivedEvent?.Invoke(bytes);
         }
     }
 }

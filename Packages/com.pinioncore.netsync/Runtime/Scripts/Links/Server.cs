@@ -47,15 +47,12 @@ namespace PinionCore.NetSync
          [CreateProperty] public string Hash => Protocol.VersionCode.ToHexString();
 
         void IBinderProvider.RegisterClientBinder(IBinder binder)
-        {
-            UnityEngine.Debug.Log($"RegisterClientBinder {binder.GetHashCode()}");
+        {            
             _BinderOperator.Enqueue(new BinderCommand { Status = BinderCommand.OperatorStatus.Add, Binder = binder });
         }
 
         void IBinderProvider.UnregisterClientBinder(IBinder binder)
         {
-            
-            UnityEngine.Debug.Log($"UnregisterClientBinder {binder.GetHashCode()} ");
             _BinderOperator.Enqueue(new BinderCommand { Status = BinderCommand.OperatorStatus.Remove, Binder = binder });
         }
 

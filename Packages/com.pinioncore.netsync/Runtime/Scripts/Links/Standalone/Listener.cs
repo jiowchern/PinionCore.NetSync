@@ -12,8 +12,8 @@ namespace PinionCore.NetSync.Standalone
         class Peer : IStreamable
         {
             private readonly IStreamable _Stream;
-            public event Action<int> DataReceivedEvent;
-            public event Action<int> DataSendEvent;
+            public event Action<int> ReceivedEvent;
+            public event Action<int> SendEvent;
             public Peer(IStreamable stream)
             {
                 _Stream = stream;
@@ -21,7 +21,11 @@ namespace PinionCore.NetSync.Standalone
             IWaitableValue<int> IStreamable.Receive(byte[] buffer, int offset, int count)
             {
                 var result = _Stream.Receive(buffer, offset, count);
-                result.ValueEvent += _Receive;
+
+                var awaiter = result.GetAwaiter();
+                awaiter.OnCompleted(() => _Receive(awaiter.GetResult()));
+
+                
                 return result;
             }
 
@@ -30,16 +34,17 @@ namespace PinionCore.NetSync.Standalone
             IWaitableValue<int> IStreamable.Send(byte[] buffer, int offset, int count)
             {
                 var result = _Stream.Send(buffer, offset, count);
-                result.ValueEvent += _Send;
+                var awaiter = result.GetAwaiter();
+                awaiter.OnCompleted(() => _Send(awaiter.GetResult()));
                 return result;
             }
             private void _Receive(int obj)
             {
-                DataReceivedEvent(obj);
+                ReceivedEvent(obj);
             }
             private void _Send(int obj)
             {
-                DataSendEvent(obj);
+                SendEvent(obj);
             }
         }
         private readonly NotifiableCollection<IStreamable> _Notice;
@@ -52,14 +57,21 @@ namespace PinionCore.NetSync.Standalone
         {
             _Notice = new PinionCore.Remote.NotifiableCollection<IStreamable>();
             _Peers= new System.Collections.Generic.Dictionary<IStreamable, Peer>();
-
+            _DataReceivedEvent += _Empty;
+            _DataSendEvent += _Empty;
 
         }
+
+        private void _Empty(int obj)
+        {
+            
+        }
+
         public void Add(IStreamable streamable)
         {
             var peer = new Peer(streamable);
-            peer.DataReceivedEvent += _Receive;
-            peer.DataSendEvent += _Send;
+            peer.ReceivedEvent += _Receive;
+            peer.SendEvent += _Send;
             _Peers.Add(streamable, peer);
             _Notice.Items.Add(peer);
         }
@@ -82,8 +94,8 @@ namespace PinionCore.NetSync.Standalone
                 return;
             }
             var peer = _Peers[streamable];
-            peer.DataReceivedEvent -= _Receive;
-            peer.DataSendEvent -= _Send;
+            peer.ReceivedEvent -= _Receive;
+            peer.SendEvent -= _Send;
             _Peers.Remove(streamable);
             _Notice.Items.Remove(peer);
 

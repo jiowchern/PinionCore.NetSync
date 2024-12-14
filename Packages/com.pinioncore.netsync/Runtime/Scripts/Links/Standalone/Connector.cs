@@ -8,29 +8,54 @@ namespace PinionCore.NetSync.Standalone
     public class Connector : MonoBehaviour 
     {
         public Listener Listener;
-        private readonly Stream _Stream;
-        readonly ReverseStream _ReverseStream;
+
 
         bool _Connecting;
+
+        System.Action _Disconnect;
         public Connector()
         {
-            _Stream = new PinionCore.Network.Stream();
-            _ReverseStream = new ReverseStream(_Stream);
+            _Disconnect = _Empty;
+
+
         }
+
+        private void _Empty()
+        {
+            
+        }
+
         public void Connect()
         {
-            this.Listener.Add(_ReverseStream);
+            if(_Connecting)
+            {
+                return;
+            
+            }
+            var steam = new PinionCore.Network.Stream();
+            var reverseStream = new ReverseStream(steam);
+            this.Listener.Add(reverseStream);
             var agent = GetComponent<Client>();
-            agent.Enable(_Stream);
+            agent.Enable(steam);
             _Connecting = true;
+
+            _Disconnect = () =>
+            {
+                agent.Disable();
+                this.Listener.Remove(reverseStream);
+                _Connecting = false;
+            };
+
         }
 
         public void Disconnect()
         {
-            var agent = GetComponent<Client>();
-            agent.Disable();
-            this.Listener.Remove(_ReverseStream);
-            _Connecting = false;
+            if(!_Connecting) 
+            {
+                return;
+            }
+            _Disconnect();
+            _Disconnect = _Empty;
         }
 
         public bool IsConnect()

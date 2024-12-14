@@ -24,7 +24,6 @@ namespace PinionCore.NetSync.Tcp
 
         public TcpListener()
         {            
-            _Listener = new Listener();
         }
 
         event Action<int> _DataReceivedEvent;
@@ -56,13 +55,12 @@ namespace PinionCore.NetSync.Tcp
         }
 
         public void Bind(int port)
-        {
-            UnityEngine.Debug.Log($"Bind {port}");
+        {            
             if (_IsActive)
             {
                 return;
             }
-
+            _Listener = new Listener();
             _IsActive = true;
             BytesReceived = 0;
             BytesSent = 0;            
@@ -79,13 +77,14 @@ namespace PinionCore.NetSync.Tcp
             {
                 return;
             }
-            _Listener.Close();
+            
             var server = GetComponent<Server>();
             server.Listener.Remove(_Listener);
             _Listener.DataReceivedEvent -= _Receive;
             _Listener.DataSentEvent -= _Send;
             _IsActive = false;
-            
+            _Listener.Close();
+
         }
         void _Receive(int receive)
         {
