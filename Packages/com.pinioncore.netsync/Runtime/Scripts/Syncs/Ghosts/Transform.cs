@@ -2,11 +2,12 @@
 using PinionCore.Remote;
 using System;
 using System.Diagnostics.Contracts;
-using UnityEngine;
 
 namespace PinionCore.NetSync.Syncs.Ghosts
 {
-    public class Transform : MonoBehaviour 
+
+
+    public class Transform : GhostMonoBehaviour<ITransform>
     {
 
         System.Action _Sync;
@@ -15,20 +16,19 @@ namespace PinionCore.NetSync.Syncs.Ghosts
         {
             _Sync = ()=> { };
         }
-        public void Start()
-        {
-            gameObject.Query<ITransform>().Supply += _OnSupply;
-            gameObject.Query<ITransform>().Unsupply += _OnUnsupply;
+       
 
+        public void Update()
+        {
+            _Sync();
         }
 
-        public void OnDestroy()
+        protected override void _OnUnsupply(ITransform transform)
         {
-            gameObject.Query<ITransform>().Unsupply -= _OnUnsupply;
-            gameObject.Query<ITransform>().Supply -= _OnSupply;
+            
         }
 
-        private void _OnSupply(ITransform transform)
+        protected override void _OnSupply(ITransform transform)
         {
             _Sync = () =>
             {
@@ -36,16 +36,6 @@ namespace PinionCore.NetSync.Syncs.Ghosts
                 gameObject.transform.rotation = transform.Rotation;
                 gameObject.transform.localScale = transform.Scale;
             };
-        }
-
-        private void _OnUnsupply(ITransform transform)
-        {
-            _Sync = () => { };
-        }
-
-        private void Update()
-        {
-            _Sync();
         }
     }
     

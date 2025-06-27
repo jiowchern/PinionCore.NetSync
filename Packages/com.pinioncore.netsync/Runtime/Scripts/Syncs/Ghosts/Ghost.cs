@@ -112,7 +112,7 @@ namespace PinionCore.NetSync.Syncs.Ghosts
             _Notifiers.Add(typeof(T), notifier);
             return notifier;
         }
-        void OnDestroy()
+        public void OnDestroy()
         {
             foreach (var notifier in _Notifiers)
             {
