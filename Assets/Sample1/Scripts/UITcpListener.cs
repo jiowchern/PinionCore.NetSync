@@ -18,7 +18,7 @@ namespace PinionCore.NetSync.Sample1
             StartListening.onClick.RemoveListener(_Click);
         
         }
-
+         
         private void _Click()
         {
             if (!(Listener as IListenerEditor).IsActive)

@@ -12,6 +12,7 @@ namespace PinionCore.NetSync
     {
         public readonly IProtocol Protocol;
         public readonly Linstener Listener;
+        readonly IListenable _Listener;
         public struct BinderCommand
         {
             public enum OperatorStatus
@@ -41,8 +42,9 @@ namespace PinionCore.NetSync
             
             _BinderOperator = new System.Collections.Concurrent.ConcurrentQueue<BinderCommand>();
             Listener = new Linstener();
+            _Listener = Listener;
             Protocol = ProtocolCreator.Create();
-            _Service = new PinionCore.Remote.Soul.SyncService(this, new UserProvider(Protocol, new Serializer(Protocol.SerializeTypes), Listener, new PinionCore.Remote.InternalSerializer(), PinionCore.Memorys.PoolProvider.Shared));            
+            _Service = new PinionCore.Remote.Soul.SyncService(this, Protocol, new Serializer(Protocol.SerializeTypes), new PinionCore.Remote.InternalSerializer(), PinionCore.Memorys.PoolProvider.Shared);            
         }
          [CreateProperty] public string Hash => Protocol.VersionCode.ToHexString();
 
@@ -60,7 +62,19 @@ namespace PinionCore.NetSync
         {
             
         }
-        
+        public void Start()
+        {
+            IService service = _Service;
+            _Listener.StreamableLeaveEvent += service.Join;
+            _Listener.StreamableEnterEvent += service.Leave;
+        }
+        public void OnDestroy()
+        {
+            IService service = _Service;
+            _Listener.StreamableLeaveEvent -= service.Join;
+            _Listener.StreamableEnterEvent -= service.Leave;
+        }
+
         public void Update()
         {            
             _Service.Update();
