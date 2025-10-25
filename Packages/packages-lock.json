@@ -1,10 +1,31 @@
 {
   "dependencies": {
+    "com.coplaydev.unity-mcp": {
+      "version": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "hash": "8f227ff5be77e3b0e4ec9cf8851a884565c78a1c"
+    },
     "com.pinioncore.netsync": {
       "version": "file:com.pinioncore.netsync",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
+    },
+    "com.unity.ai.assistant": {
+      "version": "1.0.0-pre.12",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.ai.toolkit": "1.0.0-pre.18",
+        "com.unity.serialization": "3.1.1",
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.modules.unitywebrequest": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
     },
     "com.unity.ai.navigation": {
       "version": "2.0.9",
@@ -12,6 +33,15 @@
       "source": "registry",
       "dependencies": {
         "com.unity.modules.ai": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.ai.toolkit": {
+      "version": "1.0.0-pre.18",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
       "url": "https://packages.unity.com"
     },
@@ -100,6 +130,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.render-pipelines.core": {
       "version": "17.2.0",
       "depth": 1,
@@ -148,6 +185,16 @@
       "depth": 2,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.serialization": {
+      "version": "3.1.2",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.burst": "1.7.2",
+        "com.unity.collections": "2.4.2"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.shadergraph": {
