@@ -1,9 +1,9 @@
 {
   "dependencies": {
     "com.pinioncore.netsync": {
-      "version": "file:com.pinioncore.netsync",
+      "version": "file:../../PinionCore.NetSync.Package",
       "depth": 0,
-      "source": "embedded",
+      "source": "local",
       "dependencies": {}
     },
     "com.unity.ai.navigation": {
