@@ -4,147 +4,500 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 專案概述
 
-PinionCore NetSync 是一個基於 [PinionCore.Remote](https://github.com/jiowchern/PinionCore.Remote) 的 Unity 網路同步套件,實現了 Remote Method Invocation (RMI) 模式。這是一個 Unity Package Manager (UPM) 套件,提供客戶端-伺服器架構的網路同步功能。
+**PinionCore.NetSync** 是基於 [PinionCore.Remote](https://github.com/jiowchern/PinionCore.Remote) 框架的 Unity 網路同步套件，提供 Remote Method Invocation (RMI) 和 Soul-Ghost 架構的客戶端-伺服器網路通訊。
 
-**核心技術棧:**
-- Unity 2022.2+
-- .NET/C#
-- PinionCore.Remote 框架 (通過預編譯 DLL 整合)
-- 支援多種網路傳輸層: TCP、WebSocket、Standalone (本地模式)
+### 技術棧
+- **Unity 6000.2.9f1** (Unity 2022.2+ 相容)
+- **.NET Standard 2.1**
+- **C# Source Generators** (PinionCore.Remote.Tools.Protocol.Sources)
+- **支援平台**: Standalone、WebGL (需自行實作 WebSocket)
 
-## 架構設計
-
-### Soul-Ghost 模式 (核心概念)
-
-這個專案使用獨特的 **Soul-Ghost** 架構模式來實現網路物件同步:
-
-- **Soul (靈魂)**: 伺服器端的權威物件,擁有完整的遊戲邏輯和狀態
-  - 位於 `Runtime/Scripts/Syncs/Souls/`
-  - `Soul.cs` - 伺服器端物件基類,通過 GameObject.GetInstanceID() 生成唯一 ID
-  - `TrackerSender.cs` - 負責發送位置追蹤資料到客戶端
-  - `Transform.cs` - 同步 Unity Transform 組件
-  - `Viewport.cs` - 管理可見範圍,決定哪些物件需要同步給哪些客戶端
-
-- **Ghost (幽靈)**: 客戶端的代理物件,接收並呈現伺服器狀態
-  - 位於 `Runtime/Scripts/Syncs/Ghosts/`
-  - `Ghost.cs` - 客戶端代理物件,通過 INotifier<T> 監聽伺服器物件
-  - `TrackerReceiver.cs` - 接收並應用位置追蹤資料
-  - `Transform.cs` - 應用同步的 Transform 資料
-  - `GhostProvider.cs` - 自動創建/銷毀 Ghost 實例
-
-**工作流程:**
-1. 伺服器上的 `Soul` 物件狀態變化
-2. `TrackerSender` 壓縮並發送變化資料
-3. 網路層傳輸 (TCP/WebSocket/Standalone)
-4. 客戶端的 `Ghost` 通過 `TrackerReceiver` 接收並重建狀態
-
-### 網路層架構
-
-**分層設計** (位於 `Runtime/Scripts/Links/`):
-1. **傳輸層抽象** - `IStreamable` 介面定義統一的網路傳輸接口
-2. **實現層** - 三種傳輸實現:
-   - `Tcp/` - TCP 連接實現
-   - `Web/` - WebSocket 實現
-   - `Standalone/` - 本地內存傳輸 (用於單機或測試)
-3. **管理層**:
-   - `Client.cs` - 客戶端管理器,封裝 PinionCore.Remote.Ghost.IAgent
-   - `Server.cs` - 伺服器管理器,使用 PinionCore.Remote.Soul.SyncService
-
-### Protocol 協議生成
-
-- `ProtocolCreator.cs` 使用 **partial method** 模式
-- 協議由 `[PinionCore.Remote.Protocol.Creater]` 屬性標記的方法在編譯時生成
-- 通過 `IProtocol.VersionCode` 確保客戶端-伺服器版本一致性
-
-### 位置追蹤壓縮系統
-
-**Tracker 系統** (位於 `Runtime/Scripts/Syncs/Protocols/Trackers/`):
-- `Tracker.cs` - 基於時間的位置插值追蹤器
-- `ZipTracker.cs` / `ZipPosition.cs` - 位置資料壓縮,將 float 轉換為整數範圍以減少頻寬
-- `Step.cs` - 記錄位置點和重複次數
-- `FinalState.cs` - 定義追蹤結束行為 (Continue/Stop)
-
-## 常用開發命令
-
-### 構建
-
-**注意**: 直接使用 `dotnet build` 會失敗,因為這個專案依賴 Unity 生成的預編譯 DLL (位於 `Runtime/Plugins/`)。
-
-正確的構建流程:
-1. 在 Unity Editor 中打開專案
-2. Unity 會自動編譯 C# 腳本
-3. 預編譯的 PinionCore.* DLL 必須存在於 `Runtime/Plugins/` 和 `Editor/Plugins/`
-
-### 測試
-
-在 Unity Test Runner 中執行:
-- **測試位置**: `Packages/com.pinioncore.netsync/Tests/`
-- `TrackerTests.cs` - 位置追蹤和壓縮算法測試
-- `NetworkTests.cs` - 網路功能測試
-
-使用 Unity Test Runner:
-1. Window > General > Test Runner
-2. 選擇 EditMode 或 PlayMode
-3. 執行測試
-
-## 關鍵檔案位置
+## 儲存庫結構
 
 ```
-Packages/com.pinioncore.netsync/
-├── Runtime/
-│   ├── Scripts/
-│   │   ├── Links/              # 網路層實現
-│   │   │   ├── Client.cs       # 客戶端核心
-│   │   │   ├── Server.cs       # 伺服器核心
-│   │   │   ├── ProtocolCreator.cs  # 協議生成入口
-│   │   │   ├── Tcp/            # TCP 傳輸
-│   │   │   ├── Web/            # WebSocket 傳輸
-│   │   │   └── Standalone/     # 本地傳輸
-│   │   └── Syncs/              # 同步系統
-│   │       ├── Souls/          # 伺服器端物件
-│   │       ├── Ghosts/         # 客戶端代理物件
-│   │       └── Protocols/      # 同步協議定義
-│   └── Plugins/                # PinionCore.Remote 預編譯 DLL
-├── Editor/
-│   ├── Scripts/                # Unity Editor 擴展
-│   └── Plugins/                # Editor 專用 DLL
-└── Tests/                      # 單元測試
+PinionCore.NetSync/
+├── PinionCore.NetSync.Develop/     # Unity 開發專案 (Assets、Scenes、ProjectSettings)
+│   ├── Assets/
+│   │   ├── PinionCore/
+│   │   │   ├── Sample1/            # 基礎 TCP/WebSocket/Standalone 範例
+│   │   │   └── Sample2-Chat/       # 聊天應用範例 (含 Gateway 模式)
+│   │   ├── Scenes/                 # 測試場景
+│   │   └── Settings/               # Render Pipeline、Build Profiles
+│   └── ProjectSettings/
+├── PinionCore.NetSync.Package/     # Unity 套件本體 (Submodule)
+│   ├── Runtime/Scripts/
+│   │   ├── Links/                  # Server/Client MonoBehaviour、連接器、監聽器
+│   │   │   ├── Client.cs           # Unity 客戶端組件
+│   │   │   ├── Server.cs           # Unity 伺服器組件
+│   │   │   ├── Tcp/                # TCP 連接實作
+│   │   │   ├── Web/                # WebSocket 連接實作 (僅伺服器端)
+│   │   │   └── Standalone/         # 本地模擬模式
+│   │   └── Syncs/                  # Soul-Ghost 同步系統
+│   │       ├── Souls/              # 伺服器端權威物件 (Soul.cs, Transform.cs, TrackerSender.cs)
+│   │       ├── Ghosts/             # 客戶端代理物件 (Ghost.cs, GhostMonoBehaviour.cs, TrackerReceiver.cs)
+│   │       └── Protocols/          # 網路協議介面 (IObject, ITransform, ITracker)
+│   └── Editor/Scripts/             # Unity Editor 擴充
+└── PinionCore.Remote/              # 核心 RMI 框架 (Submodule)
+    ├── PinionCore.Remote/          # 核心抽象 (IProtocol, IAgent, IBinder)
+    ├── PinionCore.Remote.Server/   # 伺服器端實作
+    ├── PinionCore.Remote.Client/   # 客戶端實作
+    ├── PinionCore.Remote.Gateway/  # API 閘道服務
+    └── PinionCore.Serialization/   # 序列化框架
 ```
 
-## 擴展開發指南
+## 常用指令
 
-### 添加新的網路傳輸層
+### Unity 開發
+```bash
+# 在 Unity Editor 中開啟專案
+# File > Open Project > 選擇 PinionCore.NetSync.Develop/
 
-1. 在 `Runtime/Scripts/Links/` 創建新資料夾
-2. 實現 `IStreamable` 介面:
-   - `IAwaitableSource<int> Send(byte[], int, int)`
-   - `IAwaitableSource<int> Receive(byte[], int, int)`
-3. 實現 `IListenable` 介面處理連接事件
-4. 創建對應的 `Connector` 和 `Listener` 類別
-5. 在 `Editor/Scripts/` 添加自定義 Inspector
+# 執行範例場景
+# 1. Sample1: 開啟 Assets/PinionCore/Sample1/Scenes/*.unity
+# 2. Sample2-Chat: 開啟 Assets/Scenes/SampleScene.unity
+```
 
-### 添加新的同步協議
+### Submodule 管理
+```bash
+# 初始化並更新所有 submodule
+git submodule update --init --recursive
 
-1. 在 `Runtime/Scripts/Syncs/Protocols/` 定義新介面 (繼承 `IObject`)
-2. 在 Soul 端實現該介面並通過 `IBinderProvider` 註冊
-3. 在 Ghost 端使用 `INotifier<T>` 訂閱該介面
-4. 重新生成 Protocol (需要重新在 Unity 中編譯)
+# 更新 PinionCore.NetSync.Package
+cd PinionCore.NetSync.Package
+git checkout main
+git pull origin main
+cd ..
+git add PinionCore.NetSync.Package
+git commit -m "chore: update PinionCore.NetSync.Package submodule"
 
-### User 管理系統
+# 更新 PinionCore.Remote
+cd PinionCore.Remote
+git checkout master
+git pull origin master
+cd ..
+git add PinionCore.Remote
+git commit -m "chore: update PinionCore.Remote submodule"
+```
 
-- `User.cs` - 代表一個連接的玩家
-- `UserProvider.cs` - 管理 User 生命週期
-- Soul 物件可以通過 `UserEnter(User)` / `UserLeave(User)` 接收玩家連接事件
+### 建置與測試 (PinionCore.Remote)
+```bash
+# 切換到 PinionCore.Remote 子模組
+cd PinionCore.Remote
+
+# 還原依賴並建置
+dotnet restore
+dotnet build --configuration Release --no-restore
+
+# 執行測試 (含覆蓋率)
+dotnet test /p:CollectCoverage=true /p:CoverletOutput=../CoverageResults/ /p:MergeWith="../CoverageResults/coverage.json" /p:CoverletOutputFormat="lcov%2cjson" -m:1
+
+# 打包 NuGet 套件
+dotnet pack --configuration Release --output ./nupkgs
+```
+
+### 發佈 Unity 套件
+```bash
+# 切換到 Package submodule 並推送變更
+cd PinionCore.NetSync.Package
+git add .
+git commit -m "feat: add new feature"
+git push origin main
+cd ..
+
+# 更新主儲存庫的 submodule 參考
+git add PinionCore.NetSync.Package
+git commit -m "chore: update package submodule"
+git push
+```
+
+## 核心架構
+
+### 1. Soul-Ghost 同步模式
+
+**Server Side (Soul - 權威物件)**:
+```csharp
+using PinionCore.NetSync.Syncs.Souls;
+
+public class MySoul : Soul  // 繼承 Soul
+{
+    void Start()
+    {
+        // 伺服器邏輯 (權威狀態)
+        // 自動同步到所有連接的客戶端
+    }
+}
+```
+
+**Client Side (Ghost - 代理物件)**:
+```csharp
+using PinionCore.NetSync.Syncs.Ghosts;
+
+public class MyGhost : Ghost  // 繼承 Ghost
+{
+    void Update()
+    {
+        // 接收並渲染伺服器狀態
+        // 透過 TrackerReceiver 處理位置插值
+    }
+}
+```
+
+**核心概念**:
+- **Soul**: 伺服器端權威物件，實際執行遊戲邏輯
+- **Ghost**: 客戶端代理物件，接收並顯示伺服器狀態
+- **Tracker System**: 位置壓縮與軌跡插值，減少頻寬消耗
+- **自動綁定**: Soul 透過 `IObject` 介面與 Ghost 自動配對
+
+### 2. 連接架構
+
+**伺服器設置**:
+```csharp
+using PinionCore.NetSync;
+
+// 1. 添加 Server 組件 (MonoBehaviour)
+var server = gameObject.AddComponent<Server>();
+
+// 2. 添加監聽器 (TCP 或 WebSocket)
+var listener = gameObject.AddComponent<Tcp.Listener>();
+listener.Port = 7777;
+
+// 3. 透過 BinderEvent 處理客戶端連接
+server.BinderEvent.AddListener((command) =>
+{
+    if (command.Status == Server.BinderCommand.OperatorStatus.Add)
+    {
+        // 客戶端連接：綁定物件到 command.Binder
+        var soul = Instantiate(soulPrefab).GetComponent<Soul>();
+        command.Binder.Bind<IObject>(soul);
+    }
+    else
+    {
+        // 客戶端斷線：清理資源
+    }
+});
+```
+
+**客戶端設置**:
+```csharp
+using PinionCore.NetSync;
+
+// 1. 添加 Client 組件 (MonoBehaviour)
+var client = gameObject.AddComponent<Client>();
+
+// 2. 添加連接器 (TCP 或 WebSocket)
+var connector = gameObject.AddComponent<Tcp.Connector>();
+connector.Host = "127.0.0.1";
+connector.Port = 7777;
+
+// 3. 透過 INotifierQueryable 監聽遠端物件
+client.Queryer.QueryNotifier<IObject>().Supply += (obj) =>
+{
+    // 伺服器發送物件：實例化 Ghost
+    var ghost = Instantiate(ghostPrefab).GetComponent<Ghost>();
+    ghost.Bind(obj);
+};
+```
+
+### 3. 傳輸層抽象
+
+| 傳輸層 | 組件 | 適用場景 |
+|-------|-----|---------|
+| **TCP** | `Tcp.Listener`, `Tcp.Connector` | 可靠、有序傳輸 (預設) |
+| **WebSocket** | `Web.Listener`, WebGL 瀏覽器內建 | WebGL 平台、穿越防火牆 |
+| **Standalone** | `Standalone.Listener`, `Standalone.Connector` | 本地模擬、單元測試 |
+
+**選擇邏輯** (參考 Sample2-Chat/Client.cs):
+```csharp
+if (Application.platform == RuntimePlatform.WebGLPlayer && !Application.isEditor)
+{
+    // WebGL 平台使用 WebSocket
+    var state = new WebSocketState(endpoint);
+}
+else
+{
+    // 其他平台使用 TCP
+    var state = new TcpSocketState(endpoint);
+}
+```
+
+### 4. Protocol 與 Source Generator
+
+**Protocol 定義** (參考 PinionCore.Remote 框架):
+```csharp
+// 定義共享介面
+public interface IGreeter
+{
+    PinionCore.Remote.Value<string> SayHello(string request);
+}
+
+// 使用 Source Generator 生成協議
+public static partial class ProtocolCreator
+{
+    public static PinionCore.Remote.IProtocol Create()
+    {
+        PinionCore.Remote.IProtocol protocol = null;
+        _Create(ref protocol);
+        return protocol;
+    }
+
+    [PinionCore.Remote.Protocol.Creator]  // 觸發 Source Generator
+    static partial void _Create(ref PinionCore.Remote.IProtocol protocol);
+}
+```
+
+**Unity 中使用**:
+```csharp
+// Server/Client 自動使用 ProtocolCreator.Create()
+// 參考 Links/ProtocolCreator.cs
+```
+
+### 5. Gateway 模式 (可選)
+
+**用途**: 多服務分佈式架構、負載平衡、協議版本管理
+
+**客戶端啟用** (Sample2-Chat/Client.cs:104-112):
+```csharp
+IAgent agent;
+if (useGateway)
+{
+    var pool = new PinionCore.Remote.Gateway.Hosts.AgentPool(protocol);
+    agent = new PinionCore.Remote.Gateway.Agent(pool);
+}
+else
+{
+    agent = PinionCore.Remote.Client.Provider.CreateAgent(protocol);
+}
+```
+
+### 6. StatusMachine 狀態管理模式
+
+**重要**: 範例代碼 (Sample2-Chat) 大量使用 `PinionCore.Utility.StatusMachine` 管理連接狀態。
+
+**核心概念**:
+- **IStatus 介面**: 定義狀態生命週期 (`Enter()`, `Update()`, `Leave()`)
+- **StatusMachine**: 管理狀態佇列與轉換 (`Push()`, `Update()`, `Termination()`)
+- **事件驅動**: 透過事件觸發狀態轉換，避免大量 enum/switch 判斷
+
+**範例** (Client.cs):
+```csharp
+public class Client : MonoBehaviour, IStatus
+{
+    readonly StatusMachine _Machine;
+
+    private void Start()
+    {
+        _Machine.Push(this);  // 推送初始狀態 (IConnect)
+    }
+
+    private void Update()
+    {
+        _Machine.Update();  // 驅動狀態機 (處理轉換與更新)
+    }
+
+    void IConnect.Connect(string endpoint, bool gate)
+    {
+        var connectingState = new TcpSocketState(endpoint);
+        connectingState.SuccessEvent += (stream) =>
+        {
+            _ToSetupMode(stream, gate);  // 成功後轉換到下一狀態
+        };
+        _Machine.Push(connectingState);  // 推送連接狀態
+    }
+}
+```
+
+**參考範例**:
+- `Sample2-Chat/Client.cs`: 連接 -> TCP/WebSocket -> 遊戲循環
+- `Sample2-Chat/TcpSocketState.cs`, `WebSocketState.cs`: 連接狀態實作
+- `Sample2-Chat/LoopState.cs`: 遊戲循環狀態
+
+**詳細說明**: 參閱 `PinionCore.Remote/CLAUDE.md` 的 StatusMachine 章節
+
+### 7. 位置追蹤與壓縮
+
+**Tracker 系統**:
+- **TrackerSender** (Souls): 伺服器端發送壓縮的軌跡資料
+- **TrackerReceiver** (Ghosts): 客戶端接收並插值位置
+- **ZipTracker**: 壓縮演算法 (Step、FinalState、ZipPosition)
+
+**使用方式** (自動處理):
+```csharp
+// Soul 端
+public class MySoul : Soul
+{
+    // TrackerSender 自動附加，發送 Transform 變化
+}
+
+// Ghost 端
+public class MyGhost : Ghost
+{
+    // TrackerReceiver 自動接收並插值
+}
+```
+
+## 開發流程
+
+### 新增網路同步物件
+
+1. **定義協議介面** (如需自訂，否則使用內建 `IObject`):
+   ```csharp
+   public interface IMyObject : IObject
+   {
+       // 自訂屬性或方法
+   }
+   ```
+
+2. **建立 Soul 類別** (伺服器端):
+   ```csharp
+   using PinionCore.NetSync.Syncs.Souls;
+
+   public class MySoul : Soul
+   {
+       void Start()
+       {
+           // 伺服器邏輯
+       }
+   }
+   ```
+
+3. **建立 Ghost 類別** (客戶端):
+   ```csharp
+   using PinionCore.NetSync.Syncs.Ghosts;
+
+   public class MyGhost : Ghost
+   {
+       void Update()
+       {
+           // 客戶端渲染
+       }
+   }
+   ```
+
+4. **在 Server 端綁定**:
+   ```csharp
+   server.BinderEvent.AddListener((command) =>
+   {
+       if (command.Status == Add)
+       {
+           var soul = Instantiate(soulPrefab).GetComponent<MySoul>();
+           command.Binder.Bind<IMyObject>(soul);
+       }
+   });
+   ```
+
+5. **在 Client 端監聽**:
+   ```csharp
+   client.Queryer.QueryNotifier<IMyObject>().Supply += (obj) =>
+   {
+       var ghost = Instantiate(ghostPrefab).GetComponent<MyGhost>();
+       ghost.Bind(obj);
+   };
+   ```
+
+### 測試工作流程
+
+1. **Standalone 模式測試** (無需網路):
+   ```csharp
+   // 使用 Standalone.Listener 和 Standalone.Connector
+   // 在單一 Unity 場景中測試 Server/Client 邏輯
+   ```
+
+2. **本地網路測試**:
+   - 建置兩個場景：Server 場景 + Client 場景
+   - 或使用 ParrelSync 克隆編輯器
+
+3. **WebGL 測試**:
+   - 建置 WebGL 版本
+   - 確保使用 WebSocket 傳輸 (Application.platform == RuntimePlatform.WebGLPlayer)
+   - 伺服器端需實作 WebSocket 監聽器
+
+### Submodule 開發流程
+
+**修改 PinionCore.NetSync.Package**:
+```bash
+# 1. 進入 submodule
+cd PinionCore.NetSync.Package
+
+# 2. 確保在正確分支
+git checkout main
+
+# 3. 修改程式碼並提交
+git add .
+git commit -m "feat: add new transport layer"
+git push origin main
+
+# 4. 回到主儲存庫並更新參考
+cd ..
+git add PinionCore.NetSync.Package
+git commit -m "chore: update Package submodule to include new transport"
+git push
+```
+
+**修改 PinionCore.Remote**:
+- 同上，但分支為 `master`
+- 通常不需修改，除非需要核心功能變更
 
 ## 重要注意事項
 
-1. **DLL 依賴**: 所有 `Runtime/Plugins/` 中的 DLL 是必需的,缺少任何一個會導致編譯錯誤
-2. **協議版本**: Client 和 Server 必須使用相同的 Protocol.VersionCode,否則連接會失敗
-3. **Unity 限制**: 這是 Unity Package,必須在 Unity 環境中使用,不能作為獨立 .NET 專案構建
-4. **MonoBehaviour 生命週期**: Client/Server 都繼承 MonoBehaviour,需要手動在 Update() 中調用其 Update() 方法
-5. **日誌系統**: 使用 `Client.EnableLog` / `Server.EnableLog` 啟用 PinionCore 內部日誌
+### Unity WebGL 限制
+- **必須使用 WebSocket**: TCP 不支援，需在 `IConnect.Connect()` 中判斷平台
+- **客戶端 WebSocket**: Unity WebGL 使用瀏覽器內建 WebSocket API (非 C# Socket)
+- **伺服器端**: 需實作 `Web.Listener` 或使用 Gateway
 
-## Git 分支策略
+### Submodule 狀態
+- **提交前檢查**: `git status` 應顯示 submodule 在正確的 commit
+- **推送順序**: 先推送 submodule 變更，再推送主儲存庫
+- **協作**: 其他開發者需執行 `git submodule update` 同步
 
-- **main**: 主分支,穩定版本
-- 最近提交顯示正在修復網路傳輸問題 ("fixed packet transfer error")
+### StatusMachine 使用
+- **資源管理**: 在 `IStatus.Enter()` 註冊資源，`Leave()` 取消註冊
+- **避免記憶體洩漏**: 確保事件處理器在 `Leave()` 中取消訂閱
+- **適用場景**: 凡是要用 enum 控制程序走向的代碼都應使用此模式
+
+### 網路斷線檢測
+- ❌ **錯誤**: 使用 `Agent.Ping` 輪詢檢測斷線 (延遲、不準確、浪費資源)
+- ✅ **正確**: 訂閱 `Peer.SocketErrorEvent` 事件 (即時、準確、零開銷)
+- **實作**: 在 `ConnectedState.Enter()` 訂閱，`Leave()` 取消訂閱
+
+### 資源釋放模式
+- 使用 `_Dispose` 閉包模式處理延遲初始化資源
+- 在 `Start()` 中設置 `_Dispose = () => { /* cleanup */ }`
+- 在 `Dispose()` / `OnDestroy()` 中呼叫 `_Dispose()`
+
+### 禁止使用 static class
+- 這是網路通訊框架，嚴禁使用 `static class` (除了工具類如 `ProtocolCreator`)
+- 所有狀態應封裝在實例中，便於測試與多實例場景
+
+### 檔案路徑規範
+- **Windows 絕對路徑**: 所有檔案操作必須使用完整的 Windows 路徑格式
+- 例如: `D:\develop\PinionCore.NetSync\...` (包含磁碟機代號與反斜線)
+
+## 範例專案參考
+
+### Sample1 (基礎範例)
+- **位置**: `Assets/PinionCore/Sample1/`
+- **場景**: `Client.unity`, `Server.unity`, `Main.unity`
+- **功能**: TCP、WebSocket、Standalone 三種傳輸模式的基本連接測試
+
+### Sample2-Chat (進階範例)
+- **位置**: `Assets/PinionCore/Sample2-Chat/`
+- **場景**: `Assets/Scenes/SampleScene.unity`
+- **功能**:
+  - StatusMachine 狀態管理
+  - Gateway 模式切換
+  - TCP/WebSocket 動態選擇
+  - 聊天室 (ILogin, IPlayer, IChatter)
+- **關鍵檔案**:
+  - `Client.cs`: 主控制器 (IConnect, IStatus)
+  - `Controller.cs`: UI 邏輯 (Unity Events)
+  - `LoopState.cs`: 遊戲循環狀態
+  - `TcpSocketState.cs`, `WebSocketState.cs`: 連接狀態
+
+## 相關資源
+
+- **PinionCore.Remote 文檔**: [README](PinionCore.Remote/README.md)
+- **PinionCore.Remote 開發指南**: [CLAUDE.md](PinionCore.Remote/CLAUDE.md)
+- **Package README**: [PinionCore.NetSync.Package/README.md](PinionCore.NetSync.Package/README.md)
+- **主儲存庫**: https://github.com/jiowchern/PinionCore.NetSync
+- **套件儲存庫**: https://github.com/jiowchern/PinionCore.NetSync.Package
+- **核心框架**: https://github.com/jiowchern/PinionCore.Remote
