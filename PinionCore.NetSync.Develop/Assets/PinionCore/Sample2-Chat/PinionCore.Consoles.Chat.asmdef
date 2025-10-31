@@ -1,0 +1,18 @@
+{
+    "name": "PinionCore.Consoles.Chat1",
+    "rootNamespace": "",
+    "references": [
+        "Unity.TextMeshPro",
+        "PinionCore.NetSync"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "alwaysLinkAssembly": true
+}

@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Sample1/Scenes/Main.unity
+    path: Assets/PinionCore/Sample1/Scenes/Main.unity
     guid: 88c50b8a54e0fc54f97013f0de1dd3fe
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
