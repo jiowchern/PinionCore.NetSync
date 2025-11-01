@@ -73,4 +73,12 @@ crashlytics-build.properties
 
 # Project-specific ignores
 /notes/
-/Publishs/
+
+# WebGL Publishes - Ignore built apps but keep Docker configs
+Publishs/Sample*/app/
+
+# Environment variables (contains sensitive Cloudflare Tunnel token)
+Publishs/.env
+
+# Docker Compose override file for local development
+Publishs/docker-compose.override.yml

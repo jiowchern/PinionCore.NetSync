@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Cloudflare Tunnel - 公網訪問入口
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: pinioncore-cloudflared
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - nginx-proxy
+    networks:
+      - pinioncore-net
+    restart: unless-stopped
+
+  # 反向代理 + 首頁
+  nginx-proxy:
+    build: ./nginx-proxy
+    container_name: pinioncore-proxy
+    # 移除 ports 映射，改由 cloudflared 對外
+    # ports:
+    #   - "80:80"
+    depends_on:
+      - sample2
+    networks:
+      - pinioncore-net
+    restart: unless-stopped
+
+  # Sample2 WebGL Player
+  sample2:
+    build: ./Sample2
+    container_name: pinioncore-sample2
+    networks:
+      - pinioncore-net
+    restart: unless-stopped
+
+  # Gateway Router - 遊戲伺服器路由器
+  router:
+    build:
+      context: ../PinionCore.Remote
+      dockerfile: docker/Dockerfile.router
+    image: gateway-router:latest
+    container_name: pinioncore-router
+    hostname: router
+    ports:
+      - "2083:8002"  # WebSocket port for WebGL clients
+      - "8001:8001"  # TCP port (optional)
+      - "8003:8003"  # Registry port (for chat servers)
+    environment:
+      - AGENT_TCP_PORT=8001
+      - AGENT_WEB_PORT=8002
+      - REGISTRY_TCP_PORT=8003
+    command:
+      - --agent-tcp-port=8001
+      - --agent-web-port=8002
+      - --registry-tcp-port=8003
+    healthcheck:
+      test: ["CMD", "sh", "-c", "netstat -an | grep 8001"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - pinioncore-net
+    restart: unless-stopped
+
+  # Chat Server - Sample2 遊戲邏輯伺服器
+  chat-server:
+    build:
+      context: ../PinionCore.Remote
+      dockerfile: docker/Dockerfile.chatserver
+    image: chat-server:latest
+    container_name: pinioncore-chatserver
+    hostname: chat-server
+    depends_on:
+      router:
+        condition: service_healthy
+    environment:
+      - ROUTER_HOST=router
+      - ROUTER_PORT=8003
+      - GROUP=1
+    command:
+      - --router-host=router
+      - --router-port=8003
+      - --group=1
+    networks:
+      - pinioncore-net
+    restart: unless-stopped
+
+  # 未來新增 Sample3 時取消註解
+  # sample3:
+  #   build: ./Sample3
+  #   container_name: pinioncore-sample3
+  #   networks:
+  #     - pinioncore-net
+  #   restart: unless-stopped
+
+networks:
+  pinioncore-net:
+    driver: bridge

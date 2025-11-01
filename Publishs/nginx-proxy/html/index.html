@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PinionCore.NetSync - WebGL Samples</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 48px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .samples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .sample-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .sample-card:hover {
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .sample-card h2 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.5em;
+        }
+
+        .sample-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .sample-card .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+            padding-top: 32px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PinionCore.NetSync</h1>
+        <p class="subtitle">Unity 網路同步框架 - WebGL 範例</p>
+
+        <div class="samples">
+            <a href="/sample2/" class="sample-card">
+                <h2>Sample2 - Chat</h2>
+                <p>進階聊天應用範例，展示 StatusMachine 狀態管理、Gateway 模式、TCP/WebSocket 動態選擇。</p>
+                <span class="badge">WebGL</span>
+                <span class="badge">Chat</span>
+            </a>
+
+            <!-- 未來新增 Sample3 時取消註解 -->
+            <!--
+            <a href="/sample3/" class="sample-card">
+                <h2>Sample3 - [標題]</h2>
+                <p>[描述 Sample3 的功能]</p>
+                <span class="badge">WebGL</span>
+            </a>
+            -->
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>PinionCore.NetSync</strong> - 基於
+                <a href="https://github.com/jiowchern/PinionCore.Remote" target="_blank">PinionCore.Remote</a>
+                框架的 Unity 網路同步套件
+            </p>
+            <p style="margin-top: 8px;">
+                <a href="https://github.com/jiowchern/PinionCore.NetSync" target="_blank">GitHub Repository</a> |
+                <a href="https://github.com/jiowchern/PinionCore.NetSync.Package" target="_blank">Unity Package</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

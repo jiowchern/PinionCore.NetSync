@@ -1,0 +1,16 @@
+# 本地開發測試用配置
+# 複製此檔案為 docker-compose.override.yml 以啟用本地測試模式
+# cp docker-compose.override.yml.example docker-compose.override.yml
+
+version: '3.8'
+
+services:
+  # 本地測試時禁用 cloudflared
+  cloudflared:
+    profiles: ["production"]  # 只在 --profile production 時啟動
+
+  # 本地測試時啟用 port 映射
+  nginx-proxy:
+    ports:
+      - "80:80"  # 映射到本機 port 80
+      # - "8080:80"  # 如果 port 80 被佔用，可使用 8080
