@@ -30,6 +30,8 @@ PinionCore NetSync 是一套以 Unity 為核心的網路同步框架，能在多
 
 每個範例場景均附有已設定好的元件 Prefab，進入 Play Mode 前請依實際端點調整 Inspector 屬性。
 
+此外可透過 <https://proxy.pinioncore.dpdns.org/sample2> 線上體驗 Sample 2，直接驗證連線流程而不需先下載專案。
+
 ## 套件開發重點
 
 `PinionCore.NetSync.Package` 目錄與發佈版本一致：

@@ -30,6 +30,8 @@ PinionCore NetSync is a Unity-focused networking toolkit for synchronizing gamep
 
 Each sample scene includes prefabs configured with the package components. Adjust inspector properties to match your network endpoints before entering Play Mode.
 
+A hosted build of Sample 2 is available at <https://proxy.pinioncore.dpdns.org/sample2>, allowing you to exercise the connection flow without cloning the project.
+
 ## Working on the package
 
 The `PinionCore.NetSync.Package` folder mirrors the published UPM package:
