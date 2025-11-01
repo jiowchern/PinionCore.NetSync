@@ -1,45 +1,8 @@
 <linker>
-    <!-- Unity Scripts -->
-    <assembly fullname="Assembly-CSharp">
-        <type fullname="PinionCore.NetSync.Web.WebSocketStream">
-            <method name="WebSocketAllocate" />
-			<method name="WebSocketSetOnOpen" />
-			<method name="WebSocketSetOnMessage" />
-			<method name="WebSocketSetOnError" />
-			<method name="WebSocketSetOnClose" />
-        </type>
-    </assembly>
+  
 
 	<!-- Sample2-Chat Assemblies -->
 	<assembly fullname="PinionCore.Consoles.Chat1" preserve="all" />
 	<assembly fullname="PinionCore.Consoles.Chat1.Common" preserve="all" />
 
-	<!-- PinionCore.NetSync Package -->
-	<assembly fullname="PinionCore.NetSync">
-        <type fullname="PinionCore.NetSync.Web.WebSocketStream">
-            <method name="WebSocketAllocate" />
-			<method name="WebSocketSetOnOpen" />
-			<method name="WebSocketSetOnMessage" />
-			<method name="WebSocketSetOnError" />
-			<method name="WebSocketSetOnClose" />
-        </type>
-    </assembly>
-
-	<!-- PinionCore.Remote Core Assemblies (required for RMI) -->
-	 
-	<assembly fullname="PinionCore.Remote" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Ghost" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Soul" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Client" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Server" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Gateway" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Gateway.Protocols" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Protocol.Identify" preserve="all" />
-	<assembly fullname="PinionCore.Remote.Standalone" preserve="all" />
-
-	<!-- PinionCore Utility and Serialization -->
-	
-	<assembly fullname="PinionCore.Utility" preserve="all" />
-	<assembly fullname="PinionCore.Serialization" preserve="all" />
-	<assembly fullname="PinionCore.Network" preserve="all" />
 </linker>

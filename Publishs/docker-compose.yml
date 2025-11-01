@@ -44,7 +44,7 @@ services:
     container_name: pinioncore-router
     hostname: router
     ports:
-      - "2083:8002"  # WebSocket port for WebGL clients
+      - "8002:8002"  # WebSocket port for WebGL clients
       - "8001:8001"  # TCP port (optional)
       - "8003:8003"  # Registry port (for chat servers)
     environment:
