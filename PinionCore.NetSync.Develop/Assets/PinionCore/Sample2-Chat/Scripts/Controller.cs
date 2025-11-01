@@ -19,6 +19,7 @@ namespace PinionCore.NetSync.Samples.Chat
         
         public TMPro.TMP_InputField EndpointText;
         public UnityEngine.UI.Button ConnectButton;
+        public UnityEngine.UI.Button ConnectToDemoButton;
 
         public UnityEngine.GameObject LoginPanel;
         public TMPro.TMP_InputField NameText;
@@ -29,7 +30,8 @@ namespace PinionCore.NetSync.Samples.Chat
         public TMPro.TMP_Text ChatMessagesText;
         public TMPro.TMP_InputField SendMessageText;
         public UnityEngine.UI.Button SendButton;
-        
+
+        public TMPro.TMP_Text Ping;
 
 
         public UnityEngine.GameObject MessagePanel;
@@ -54,15 +56,27 @@ namespace PinionCore.NetSync.Samples.Chat
             ChatPanel.SetActive(false);
         }
 
-
+        public void OnPing(float seconds)
+        {
+            Ping.text = $"{seconds}";
+        }
         public void OnConnectSupply(IConnect connect)
         {
             UnityAction call = () =>
             {
                 connect.Connect(EndpointText.text, GateToggle.isOn);
             };
+
             ConnectButton.onClick.AddListener(call);
-            _Releases.Add(() => { 
+
+            UnityAction demoCall = () =>
+            {
+                connect.Connect("wss://ws.pinioncore.dpdns.org", GateToggle.isOn);
+            };
+
+            ConnectToDemoButton.onClick.AddListener(demoCall);
+            _Releases.Add(() => {
+                ConnectToDemoButton.onClick.RemoveListener(demoCall);
                 ConnectButton.onClick.RemoveListener(call);
             });
             ConnectPanel.SetActive(true);
@@ -164,6 +178,7 @@ namespace PinionCore.NetSync.Samples.Chat
                 {
                     _SendPrivate(SendMessageText.text , PrivateNameText.text , chatters);
                 }
+                SendMessageText.text = string.Empty;
             };
             
             SendButton.onClick.AddListener(call);

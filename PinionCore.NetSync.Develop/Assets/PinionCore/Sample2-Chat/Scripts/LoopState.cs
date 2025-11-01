@@ -16,8 +16,9 @@ namespace PinionCore.NetSync.Samples.Chat
         readonly private IStreamable stream;
         
 
-        private float _Ping = 0f;
-        public float Ping => _Ping;
+        
+        public event Action<float> OnPingChanged;
+        readonly TimeCounter timeCounter = new TimeCounter();
 
         public LoopState(Client client,IAgent agent, IStreamable stream)
         {
@@ -30,7 +31,11 @@ namespace PinionCore.NetSync.Samples.Chat
 
         void IStatus.Update()
         {
-            _Ping = agent.Ping;
+            if(timeCounter.Second > 1)
+            {
+                timeCounter.Reset();
+                OnPingChanged?.Invoke(agent.Ping);
+            }            
             agent.HandleMessage();
             agent.HandlePackets();
             

@@ -116,6 +116,10 @@ namespace PinionCore.NetSync.Samples.Chat
         private void _ToGame(IAgent agent, IStreamable stream)
         {
             var state = new LoopState(this,agent , stream);
+            state.OnPingChanged += (ping) =>
+            {
+                OnPing.Invoke(ping);
+            };
             _Machine.Push(state);
         }
 
