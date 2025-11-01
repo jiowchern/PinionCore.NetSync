@@ -71,7 +71,7 @@ namespace PinionCore.NetSync.Samples.Chat
 
             UnityAction demoCall = () =>
             {
-                connect.Connect("wss://ws.pinioncore.dpdns.org", GateToggle.isOn);
+                connect.Connect("wss://ws.pinioncore.dpdns.org", true);
             };
 
             ConnectToDemoButton.onClick.AddListener(demoCall);
@@ -205,7 +205,7 @@ namespace PinionCore.NetSync.Samples.Chat
                 chatMessages.Pop();
             }
             
-            ChatMessagesText.text = string.Join("\r\n", chatMessages.Reverse());
+            ChatMessagesText.text = string.Join("\r\n", chatMessages);
         }
 
         private void _SendPrivate(string sendMessage, string name, Dictionary<string, IChatter> chatters)
