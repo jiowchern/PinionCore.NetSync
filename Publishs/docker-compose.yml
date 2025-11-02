@@ -35,6 +35,22 @@ services:
       - pinioncore-net
     restart: unless-stopped
 
+  # WSS (WebSocket Secure) 反向代理 - 提供 SSL 終止
+  wss-proxy:
+    image: nginx:alpine
+    container_name: pinioncore-wss-proxy
+    ports:
+      - "443:443"  # HTTPS/WSS 對外端口
+      - "80:80"    # HTTP 重定向到 HTTPS (可選)
+    volumes:
+      - ./wss-proxy.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl-certs:/etc/nginx/certs:ro
+    depends_on:
+      - router
+    networks:
+      - pinioncore-net
+    restart: unless-stopped
+
   # Gateway Router - 遊戲伺服器路由器
   router:
     build:
@@ -43,9 +59,9 @@ services:
     image: gateway-router:latest
     container_name: pinioncore-router
     hostname: router
+    # WebSocket port 8002 改由 wss-proxy 代理，不直接對外
     ports:
-      - "8002:8002"  # WebSocket port for WebGL clients
-      - "8001:8001"  # TCP port (optional)
+      - "8001:8001"  # TCP port (optional, for non-WebGL clients)
       - "8003:8003"  # Registry port (for chat servers)
     environment:
       - AGENT_TCP_PORT=8001
