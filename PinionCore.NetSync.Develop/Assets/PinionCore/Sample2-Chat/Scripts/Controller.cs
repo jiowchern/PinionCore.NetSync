@@ -71,7 +71,7 @@ namespace PinionCore.NetSync.Samples.Chat
 
             UnityAction demoCall = () =>
             {
-                connect.Connect("ws://125.229.192.110:8002", true);
+                connect.Connect("wss://ws-direct.pinioncore.dpdns.org", true);
             };
 
             ConnectToDemoButton.onClick.AddListener(demoCall);
