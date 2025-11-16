@@ -35,10 +35,10 @@ namespace PinionCore.NetSync.Samples.Chat
             {
                 timeCounter.Reset();
                 OnPingChanged?.Invoke(agent.Ping);
-            }            
-            agent.HandleMessage();
+            }
+            agent.HandleMessages();
             agent.HandlePackets();
-            
+
         }
 
 

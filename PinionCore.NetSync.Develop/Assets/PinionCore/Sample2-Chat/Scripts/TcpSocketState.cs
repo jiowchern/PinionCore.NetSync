@@ -43,19 +43,26 @@ namespace PinionCore.NetSync.Samples.Chat
             var ipEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse(host), port);
 
             var connector = new PinionCore.Network.Tcp.Connector();
-            
-            connector.Connect(ipEndPoint).ContinueWith(task =>
+
+            connector.ConnectAsync(ipEndPoint).ContinueWith(task =>
             {
                 if (task.IsFaulted)
                 {
                     _Error = $"Connection failed: {task.Exception?.GetBaseException().Message}";
-                    
-                    
+
+
                 }
                 else
                 {
-                    var peer = task.Result;
-                    _Peer = peer;
+                    var result = task.Result;
+                    if (result.Exception != null)
+                    {
+                        _Error = $"Connection failed: {result.Exception.Message}";
+                    }
+                    else
+                    {
+                        _Peer = result.Peer;
+                    }
                 }
             });
         }

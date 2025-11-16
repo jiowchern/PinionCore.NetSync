@@ -108,7 +108,7 @@ namespace PinionCore.NetSync.Samples.Chat
             }
             else
             {
-                agent = PinionCore.Remote.Client.Provider.CreateAgent(protocol);
+                agent = new PinionCore.Remote.Ghost.Agent(protocol);
             }
             _ToGame(agent,stream);
         }
