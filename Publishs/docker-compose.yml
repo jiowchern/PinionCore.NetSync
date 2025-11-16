@@ -44,7 +44,7 @@ services:
       - "80:80"    # HTTP 重定向到 HTTPS (可選)
     volumes:
       - ./wss-proxy.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl-certs:/etc/nginx/certs:ro
+      - ./ssl-certs/1:/etc/nginx/certs:ro
     depends_on:
       - router
     networks:

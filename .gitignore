@@ -83,7 +83,6 @@ Publishs/.env
 # Docker Compose override file for local development
 Publishs/docker-compose.override.yml
 
-# SSL Certificates (keep README.md but ignore actual certificate files)
-Publishs/ssl-certs/*.pem
-Publishs/ssl-certs/*.key
-Publishs/ssl-certs/*.crt
+# SSL Certificates (ignore entire directory except README.md)
+Publishs/ssl-certs/*
+!Publishs/ssl-certs/README.md
