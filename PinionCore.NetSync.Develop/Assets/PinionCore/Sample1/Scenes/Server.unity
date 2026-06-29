@@ -290,6 +290,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30d4ca1725feaf2428661c0bc338cfa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Config: {fileID: 11400000, guid: 59a653442d626624ebe301b2e45fc8e0, type: 2}
 --- !u!114 &63873328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -302,6 +303,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d083218062bdde4988436357b64d782, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Config: {fileID: 11400000, guid: 2a8f814153eeb704b832caa9566caf49, type: 2}
 --- !u!114 &63873329
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -48,26 +48,42 @@ namespace PinionCore.NetSync.Samples.Chat
             _Machine.Termination();
         }
         
-        void IConnect.Connect(string endpoint, bool gate)
+        void IConnect.Connect(PinionCore.NetSync.ConnectionConfig config, bool gate)
         {
-
-            
-            if (Application.platform == RuntimePlatform.WebGLPlayer && !Application.isEditor )
+            if (config == null)
             {
-                _ToWebConnect(endpoint , gate);
+                OnErrorMessage.Invoke("Connection config is null.");
+                _ToConnect();
+                return;
+            }
+
+            // 由 config 的子型別決定傳輸層,不再依賴端點字串與平台判斷。
+            if (config is PinionCore.NetSync.Web.WebConnectionConfig web)
+            {
+                _ToWebConnect(web.Url, gate);
+            }
+            else if (config is PinionCore.NetSync.Tcp.TcpConnectionConfig tcp)
+            {
+                var endPoint = tcp.ToEndPoint();
+                if (endPoint == null)
+                {
+                    OnErrorMessage.Invoke($"Invalid TCP address: {tcp.Host}");
+                    _ToConnect();
+                    return;
+                }
+                _ToTcpConnect(endPoint, gate);
             }
             else
             {
-                _ToTcpConnect(endpoint, gate);
+                OnErrorMessage.Invoke($"Unsupported connection config type: {config.GetType().Name}");
+                _ToConnect();
             }
-
-
         }
 
-        private void _ToTcpConnect(string endpoint, bool gate)
+        private void _ToTcpConnect(System.Net.IPEndPoint endPoint, bool gate)
         {
-            
-            var state = new TcpSocketState(endpoint);
+
+            var state = new TcpSocketState(endPoint);
             state.SuccessEvent += (stream) =>
             {
                 _ToSetupMode(stream, gate);

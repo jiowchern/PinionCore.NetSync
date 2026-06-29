@@ -3368,6 +3368,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f84435295aa9f944a5196c31c35aa56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Config: {fileID: 11400000, guid: 2a8f814153eeb704b832caa9566caf49, type: 2}
   ConnectResultEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -3435,6 +3436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d19e1249fccd59a42b9eff2c33f83b15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Config: {fileID: 11400000, guid: 59a653442d626624ebe301b2e45fc8e0, type: 2}
 --- !u!114 &1707084561
 MonoBehaviour:
   m_ObjectHideFlags: 0

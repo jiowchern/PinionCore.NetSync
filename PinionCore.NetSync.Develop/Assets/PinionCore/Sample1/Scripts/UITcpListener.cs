@@ -1,5 +1,4 @@
 using PinionCore.NetSync.Tcp;
-using System;
 using UnityEngine;
 namespace PinionCore.NetSync.Sample1
 {
@@ -11,22 +10,33 @@ namespace PinionCore.NetSync.Sample1
         public void Start()
         {
             StartListening.onClick.AddListener(_Click);
+
+            // 監聽連接埠來源已改為 Listener.Config.Port (ScriptableObject)。
+            // InputField 僅作唯讀顯示。
+            _ShowConfig();
         }
 
         public void OnDestroy()
         {
             StartListening.onClick.RemoveListener(_Click);
-        
+
+        }
+
+        private void _ShowConfig()
+        {
+            if (Listener == null || Listener.Config == null || Port == null)
+                return;
+
+            Port.text = Listener.Config.Port.ToString();
+            Port.interactable = false;
         }
 
         private void _Click()
         {
-            if (!(Listener as IListenerEditor).IsActive)
+            IListenerEditor editor = Listener;
+            if (!editor.IsActive)
             {
-                if (!int.TryParse(Port.text, out var port))
-                    return;
-
-                Listener.Bind(port);
+                Listener.Bind();
             }
             else
             {

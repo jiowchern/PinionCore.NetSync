@@ -1,7 +1,5 @@
 using PinionCore.NetSync.Tcp;
 
-using System;
-using System.Net;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,35 +14,43 @@ namespace PinionCore.NetSync.Sample1
         public void Start()
         {
             Connect.onClick.AddListener(_Click);
-            
-            
+
+            // 連線參數來源已改為 Connector.Config (ScriptableObject)。
+            // InputField 僅作唯讀顯示,讓使用者看到實際連線目標。
+            _ShowConfig();
         }
         public void OnDestroy()
         {
             Connect.onClick.RemoveListener(_Click);
         }
+
+        private void _ShowConfig()
+        {
+            if (Connector == null || Connector.Config == null)
+                return;
+
+            if (Address != null)
+            {
+                Address.text = Connector.Config.Host;
+                Address.interactable = false;
+            }
+            if (Port != null)
+            {
+                Port.text = Connector.Config.Port.ToString();
+                Port.interactable = false;
+            }
+        }
+
         private void _Click()
         {
             if (Connector.CurrentStatus == TcpConnector.ConnectorStatus.Offline)
             {
-                if (!System.Net.IPAddress.TryParse(Address.text, out var ip))
-                    return;
-                if (!int.TryParse(Port.text, out var port))
-                    return;
-
-                Connector.Connect(new System.Net.IPEndPoint(ip, port));
-
+                Connector.Connect();
             }
             else
             {
                 Connector.Disconnect();
             }
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
         }
     }
 

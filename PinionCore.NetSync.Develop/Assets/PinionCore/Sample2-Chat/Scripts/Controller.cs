@@ -9,7 +9,7 @@ namespace PinionCore.NetSync.Samples.Chat
 {
     public interface IConnect
     {
-        void Connect(string endpoint,bool gate);
+        void Connect(PinionCore.NetSync.ConnectionConfig config, bool gate);
     }
     public class Controller : MonoBehaviour
     {
@@ -20,6 +20,14 @@ namespace PinionCore.NetSync.Samples.Chat
         public TMPro.TMP_InputField EndpointText;
         public UnityEngine.UI.Button ConnectButton;
         public UnityEngine.UI.Button ConnectToDemoButton;
+
+        [Header("連線設定 (ScriptableObject)")]
+        [Tooltip("桌面平台手動連線使用的 TCP 設定。")]
+        public PinionCore.NetSync.Tcp.TcpConnectionConfig TcpConfig;
+        [Tooltip("WebGL 平台手動連線使用的 WebSocket 設定。")]
+        public PinionCore.NetSync.Web.WebConnectionConfig WebConfig;
+        [Tooltip("「連線到示範伺服器」按鈕使用的 WebSocket (Gateway) 設定。")]
+        public PinionCore.NetSync.Web.WebConnectionConfig DemoConfig;
 
         public UnityEngine.GameObject LoginPanel;
         public TMPro.TMP_InputField NameText;
@@ -64,14 +72,14 @@ namespace PinionCore.NetSync.Samples.Chat
         {
             UnityAction call = () =>
             {
-                connect.Connect(EndpointText.text, GateToggle.isOn);
+                connect.Connect(_PlatformConfig(), GateToggle.isOn);
             };
 
             ConnectButton.onClick.AddListener(call);
 
             UnityAction demoCall = () =>
             {
-                connect.Connect("wss://ws-direct.pinioncore.dpdns.org", true);
+                connect.Connect(DemoConfig, true);
             };
 
             ConnectToDemoButton.onClick.AddListener(demoCall);
@@ -79,7 +87,28 @@ namespace PinionCore.NetSync.Samples.Chat
                 ConnectToDemoButton.onClick.RemoveListener(demoCall);
                 ConnectButton.onClick.RemoveListener(call);
             });
+
+            // 連線目標來源已改為 ConnectionConfig 資產;EndpointText 僅作唯讀顯示。
+            var cfg = _PlatformConfig();
+            if (EndpointText != null && cfg != null)
+            {
+                EndpointText.text = cfg.Describe();
+                EndpointText.interactable = false;
+            }
+
             ConnectPanel.SetActive(true);
+        }
+
+        /// <summary>
+        /// 依執行平台挑選手動連線要使用的設定:WebGL 用 <see cref="WebConfig"/>,其餘用 <see cref="TcpConfig"/>。
+        /// </summary>
+        private PinionCore.NetSync.ConnectionConfig _PlatformConfig()
+        {
+            if (Application.platform == RuntimePlatform.WebGLPlayer && !Application.isEditor)
+            {
+                return WebConfig;
+            }
+            return TcpConfig;
         }
 
 

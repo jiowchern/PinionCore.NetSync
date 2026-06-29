@@ -2515,6 +2515,9 @@ MonoBehaviour:
   EndpointText: {fileID: 1125781269}
   ConnectButton: {fileID: 1047242315}
   ConnectToDemoButton: {fileID: 2019635884}
+  TcpConfig: {fileID: 11400000, guid: 3842f9b83e5107c4c9df89d344bf4abc, type: 2}
+  WebConfig: {fileID: 11400000, guid: 1d0b72d53901c544f9fe56a5bdf49c26, type: 2}
+  DemoConfig: {fileID: 11400000, guid: ffc45674ae7176a4a9c7b0bf0061c3d5, type: 2}
   LoginPanel: {fileID: 1476856376}
   NameText: {fileID: 290631654}
   LoginButton: {fileID: 1056863019}
