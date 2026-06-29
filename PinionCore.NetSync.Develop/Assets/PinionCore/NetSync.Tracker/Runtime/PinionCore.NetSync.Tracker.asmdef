@@ -1,0 +1,16 @@
+{
+    "name": "PinionCore.NetSync.Tracker",
+    "rootNamespace": "",
+    "references": [
+        "PinionCore.NetSync"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

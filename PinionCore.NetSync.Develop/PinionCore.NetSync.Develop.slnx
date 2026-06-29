@@ -1,0 +1,10 @@
+﻿<Solution>
+  <Project Path="PinionCore.NetSync.csproj" />
+  <Project Path="PinionCore.NetSync.Tracker.csproj" />
+  <Project Path="PinionCore.NetSync.Editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="PinionCore.Consoles.Chat1.csproj" />
+  <Project Path="PinionCore.NetSync.Tracker.Tests.csproj" />
+  <Project Path="PinionCore.NetSync.Tracker.Editor.csproj" />
+</Solution>

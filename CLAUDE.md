@@ -20,7 +20,11 @@ PinionCore.NetSync/
 │   ├── Assets/
 │   │   ├── PinionCore/
 │   │   │   ├── Sample1/            # 基礎 TCP/WebSocket/Standalone 範例
-│   │   │   └── Sample2-Chat/       # 聊天應用範例 (含 Gateway 模式)
+│   │   │   ├── Sample2-Chat/       # 聊天應用範例 (含 Gateway 模式)
+│   │   │   └── NetSync.Tracker/    # 實驗性 Tracker 功能 (位置壓縮/插值)，獨立 asmdef
+│   │   │       ├── Runtime/        # ITracker/Tracker/Zip*、TrackerSender/Receiver、ProtocolCreator、Provider(SO)
+│   │   │       ├── Editor/         # TrackerSender Inspector + uxml
+│   │   │       └── Tests/          # TrackerTests (NUnit)
 │   │   ├── Scenes/                 # 測試場景
 │   │   └── Settings/               # Render Pipeline、Build Profiles
 │   └── ProjectSettings/
@@ -33,9 +37,9 @@ PinionCore.NetSync/
 │   │   │   ├── Web/                # WebSocket 連接實作 (僅伺服器端)
 │   │   │   └── Standalone/         # 本地模擬模式
 │   │   └── Syncs/                  # Soul-Ghost 同步系統
-│   │       ├── Souls/              # 伺服器端權威物件 (Soul.cs, Transform.cs, TrackerSender.cs)
-│   │       ├── Ghosts/             # 客戶端代理物件 (Ghost.cs, GhostMonoBehaviour.cs, TrackerReceiver.cs)
-│   │       └── Protocols/          # 網路協議介面 (IObject, ITransform, ITracker)
+│   │       ├── Souls/              # 伺服器端權威物件 (Soul.cs, Transform.cs)
+│   │       ├── Ghosts/             # 客戶端代理物件 (Ghost.cs, GhostMonoBehaviour.cs)
+│   │       └── Protocols/          # 網路協議介面 (IObject, ITransform)
 │   └── Editor/Scripts/             # Unity Editor 擴充
 └── PinionCore.Remote/              # 核心 RMI 框架 (Submodule)
     ├── PinionCore.Remote/          # 核心抽象 (IProtocol, IAgent, IBinder)
@@ -137,7 +141,6 @@ public class MyGhost : Ghost  // 繼承 Ghost
     void Update()
     {
         // 接收並渲染伺服器狀態
-        // 透過 TrackerReceiver 處理位置插值
     }
 }
 ```
@@ -145,8 +148,9 @@ public class MyGhost : Ghost  // 繼承 Ghost
 **核心概念**:
 - **Soul**: 伺服器端權威物件，實際執行遊戲邏輯
 - **Ghost**: 客戶端代理物件，接收並顯示伺服器狀態
-- **Tracker System**: 位置壓縮與軌跡插值，減少頻寬消耗
 - **自動綁定**: Soul 透過 `IObject` 介面與 Ghost 自動配對
+
+> Tracker（位置壓縮/插值）已從 Package 移出，改為 Develop 端的實驗性模組，詳見下方「位置追蹤與壓縮」。
 
 ### 2. 連接架構
 
@@ -313,27 +317,33 @@ public class Client : MonoBehaviour, IStatus
 
 **詳細說明**: 參閱 `PinionCore.Remote/CLAUDE.md` 的 StatusMachine 章節
 
-### 7. 位置追蹤與壓縮
+### 7. 位置追蹤與壓縮 (Tracker，實驗性模組)
 
-**Tracker 系統**:
-- **TrackerSender** (Souls): 伺服器端發送壓縮的軌跡資料
-- **TrackerReceiver** (Ghosts): 客戶端接收並插值位置
-- **ZipTracker**: 壓縮演算法 (Step、FinalState、ZipPosition)
+**重要**: Tracker 為**實驗性功能**，已從乾淨發佈的 Package 移出，現位於 Develop 端
+`PinionCore.NetSync.Develop/Assets/PinionCore/NetSync.Tracker/`，擁有獨立的 asmdef。
 
-**使用方式** (自動處理):
-```csharp
-// Soul 端
-public class MySoul : Soul
-{
-    // TrackerSender 自動附加，發送 Transform 變化
-}
+**組成**:
+- **協議與壓縮** (`Runtime/Protocols/Trackers/`): `ITracker`、`Tracker`、`ZipTracker`、`Step`、`ZipStep`、`ZipPosition`、`FinalState`
+- **TrackerSender** (`Runtime/Souls/`): 伺服器端發送壓縮的軌跡資料 (實作 `ITracker`)
+- **TrackerReceiver** (`Runtime/Ghosts/`): 客戶端接收並插值位置
+- **TrackerProtocolCreator** (`Runtime/`): 在此 asmdef 內由 Source Generator 掃描 `ITracker`（連同其繼承的 `IObject`）生成**完整 protocol**
+- **TrackerProtocolProvider** (`Runtime/`): 繼承 Package 抽象 `ProtocolProvider`（`ScriptableObject`）的子類，`Create()` 回傳上述 protocol。建立成一顆 `.asset` 指派給 Server/Client。
 
-// Ghost 端
-public class MyGhost : Ghost
-{
-    // TrackerReceiver 自動接收並插值
-}
-```
+**Protocol 注入機制（Strategy pattern）**:
+- Package 定義抽象 `ProtocolProvider : ScriptableObject { IProtocol Create(); }`，`Server`/`Client` 各有一個序列化欄位 `public ProtocolProvider Provider;`。
+- `Server.Start()` / `Client._QueryProtocol()` 讀欄位：`Protocol = Provider != null ? Provider.Create() : ProtocolCreator.Create();`（未指派時退回 Package 預設 `{IObject, ITransform}`）。
+- Develop 的 `TrackerProtocolProvider.asset` 指派到欄位後即提供含 `ITracker` 的完整 protocol。**依賴可見、無執行順序問題**。
+
+**為什麼需要 Develop 端自建 protocol**:
+- Protocol Source Generator 只掃描**當前 assembly** 的介面宣告 (`compilation.SyntaxTrees`)，不含引用的 assembly。
+- Package 的 `ProtocolCreator` 因此只含 `{IObject, ITransform}`；`ITracker` 移出後不在其中，故需 Develop 端自建。
+- 同一連線的 Server 與 Client 必須使用**同一份** protocol（VersionCode 一致）才能握手成功 → 指派同一顆 provider asset 即可。
+
+**使用方式**:
+1. 建立一顆 `TrackerProtocolProvider` 資產（Project 右鍵 → Create → PinionCore → Tracker Protocol Provider），指派到各 `Server` / `Client` 的 `Provider` 欄位（Sample1 場景已配置 `TrackerProtocol.asset`）。
+2. Soul 端掛 `TrackerSender`、Ghost 端掛 `TrackerReceiver`，其餘同步流程不變。
+
+> 若日後需要 Tracker 與 `ITransform` 等其他介面同場景使用，需讓 `TrackerProtocolCreator` 的 asmdef 觸及全部介面（例如宣告 `interface IRoot : ITransform, ITracker {}` 讓生成器一併納入）。
 
 ## 開發流程
 
