@@ -327,12 +327,13 @@ public class Client : MonoBehaviour, IStatus
 - **TrackerSender** (`Runtime/Souls/`): 伺服器端發送壓縮的軌跡資料 (實作 `ITracker`)
 - **TrackerReceiver** (`Runtime/Ghosts/`): 客戶端接收並插值位置
 - **TrackerProtocolCreator** (`Runtime/`): 在此 asmdef 內由 Source Generator 掃描 `ITracker`（連同其繼承的 `IObject`）生成**完整 protocol**
-- **TrackerProtocolProvider** (`Runtime/`): 繼承 Package 抽象 `ProtocolProvider`（`ScriptableObject`）的子類，`Create()` 回傳上述 protocol。建立成一顆 `.asset` 指派給 Server/Client。
+- **TrackerProtocolProvider** (`Runtime/`): 繼承 Package 抽象 `ProtocolProvider`（`ScriptableObject`）的子類，於建構式建好 protocol 快取在 `readonly` 欄位、`Get()` 回傳它。建立成一顆 `.asset` 指派給 Server/Client。
 
 **Protocol 注入機制（Strategy pattern）**:
-- Package 定義抽象 `ProtocolProvider : ScriptableObject { IProtocol Create(); }`，`Server`/`Client` 各有一個序列化欄位 `public ProtocolProvider Provider;`。
-- `Server.Start()` / `Client._QueryProtocol()` 讀欄位：`Protocol = Provider != null ? Provider.Create() : ProtocolCreator.Create();`（未指派時退回 Package 預設 `{IObject, ITransform}`）。
+- Package 定義抽象 `ProtocolProvider : ScriptableObject, IProtocol { IProtocol Get(); }`——Provider **自身即 `IProtocol`**（其餘 `IProtocol` 成員委派給 `Get()`）。`Server`/`Client` 各有一個序列化欄位 `public ProtocolProvider Provider;`。
+- `Server`/`Client` 的 `Protocol => Provider;`：直接把 Provider 當協議使用（未指派則為 `null`）。
 - Develop 的 `TrackerProtocolProvider.asset` 指派到欄位後即提供含 `ITracker` 的完整 protocol。**依賴可見、無執行順序問題**。
+- Package 內建精靈 `Tools / PinionCore / NetSync / Create Protocol Provider...` 可一鍵產生 `XxxProtocolCreator` + `XxxProtocolProvider` + `.asset` 三件套（程式碼位於 `Editor/Scripts/ProtocolProviderWizard.cs`）。
 
 **為什麼需要 Develop 端自建 protocol**:
 - Protocol Source Generator 只掃描**當前 assembly** 的介面宣告 (`compilation.SyntaxTrees`)，不含引用的 assembly。

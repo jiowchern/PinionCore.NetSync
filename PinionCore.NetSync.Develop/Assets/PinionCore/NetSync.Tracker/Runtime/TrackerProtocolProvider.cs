@@ -1,3 +1,5 @@
+using PinionCore.NetSync.Extensions;
+using System.Linq;
 using UnityEngine;
 
 namespace PinionCore.NetSync.TrackerProtocol
@@ -9,9 +11,16 @@ namespace PinionCore.NetSync.TrackerProtocol
     [CreateAssetMenu(menuName = "PinionCore/Tracker Protocol Provider", fileName = "TrackerProtocol")]
     public class TrackerProtocolProvider : PinionCore.NetSync.ProtocolProvider
     {
-        public override PinionCore.Remote.IProtocol Create()
+
+        readonly PinionCore.Remote.IProtocol _Protocol;
+
+        public TrackerProtocolProvider() {
+            _Protocol = TrackerProtocolCreator.Create();           
+        }
+       
+        public override PinionCore.Remote.IProtocol Get()
         {
-            return TrackerProtocolCreator.Create();
+            return _Protocol;
         }
     }
 }
