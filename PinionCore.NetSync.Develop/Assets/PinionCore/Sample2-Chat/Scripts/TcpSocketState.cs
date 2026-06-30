@@ -12,21 +12,35 @@ namespace PinionCore.NetSync.Samples.Chat
    
     internal class TcpSocketState : IStatus
     {
-        private readonly System.Net.IPEndPoint _EndPoint;
+        private readonly string endpoint;
         public System.Action<IStreamable> SuccessEvent;
         public System.Action<string> ErrorEvent;
         string _Error;
         Peer _Peer;
-        public TcpSocketState(System.Net.IPEndPoint endPoint)
+        public TcpSocketState(string endpoint)
         {
-            _EndPoint = endPoint;
+            this.endpoint = endpoint;
         }
 
-
+        
 
         void IStatus.Enter()
         {
-            var ipEndPoint = _EndPoint;
+            // parse endpoint to IpEndPoint
+            var parts = endpoint.Split(':');
+            if (parts.Length != 2)
+            {
+                ErrorEvent?.Invoke("Invalid endpoint format");
+                return;
+            }
+            string host = parts[0];
+            var rawPort = parts[1];//.Trim().Replace("\u200B", "").Replace("\uFEFF", "");
+            if (!int.TryParse(rawPort, out int port) || port < 1 || port > 65535) {
+                ErrorEvent?.Invoke("Invalid port number");
+                return;
+            }
+            
+            var ipEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse(host), port);
 
             var connector = new PinionCore.Network.Tcp.Connector();
 
